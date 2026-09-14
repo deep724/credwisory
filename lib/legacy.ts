@@ -4,7 +4,7 @@ import { parse, serializeOuter, type DefaultTreeAdapterTypes } from "parse5";
 
 const legacyRoot = path.join(process.cwd(), "legacy");
 const pageNames = new Set([
-  "index.html", "eligibility.html", "lender-enquiry.html", "compare-all-lenders.html",
+  "index.html", "eligibility.html", "lender-enquiry.html", "apply-with-us.html", "compare-all-lenders.html",
   "bank-lenders.html", "nbfc-lenders.html", "international-lenders.html", "scholarships.html",
   "scholarship-eligibility.html", "sop-guidance.html", "application-guidance.html", "blogs.html",
   "contact.html", "faq.html", "how-education-loans-work.html", "loan-with-collateral.html",

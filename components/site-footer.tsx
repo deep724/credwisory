@@ -15,6 +15,11 @@ export function SiteFooter() {
       <nav aria-label="Footer navigation" className="cw-site-footer__links">
         {footerLinks.map(([label, href]) => <a key={href} href={href}>{label}</a>)}
       </nav>
+      <address className="cw-site-footer__contact">
+        <a href="mailto:saurabh@credwisory.com">saurabh@credwisory.com</a>
+        <a href="tel:+918828156972">+91 88281 56972</a>
+        <span>312, 3rd Floor, Sahajanand Integrity, Kilavani Road, Silvassa 396230</span>
+      </address>
       <p>© {new Date().getFullYear()} Credwisory. Education-loan guidance, made clearer.</p>
     </div>
   </footer>;

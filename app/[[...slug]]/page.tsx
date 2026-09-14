@@ -28,6 +28,7 @@ export default async function Page({ params }: Props) {
     && !(filename === "index.html" && script.includes("#lender-explorer")),
   );
   if (["index.html", "compare-all-lenders.html", "bank-lenders.html", "nbfc-lenders.html", "international-lenders.html"].includes(filename)) scripts.unshift('<script src="/lender-data-normalizer.js"></script>');
+  if (["index.html", "lender-enquiry.html", "compare-all-lenders.html", "bank-lenders.html", "nbfc-lenders.html", "international-lenders.html", "interest-rate-comparison.html"].includes(filename)) scripts.unshift('<script src="/lender-application-modal.js"></script>');
   if (["index.html", "compare-all-lenders.html", "bank-lenders.html", "nbfc-lenders.html", "international-lenders.html", "interest-rate-comparison.html"].includes(filename)) scripts.unshift('<script src="/lender-logo-enhancements.js"></script>');
   if (filename === "index.html") scripts.push('<script src="/homepage-lender-directory.js"></script>');
   if (["compare-all-lenders.html", "bank-lenders.html", "nbfc-lenders.html", "international-lenders.html"].includes(filename)) scripts.push('<script src="/lender-mobile-comparison.js"></script>');

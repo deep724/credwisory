@@ -63,6 +63,7 @@ export function LegacyRuntime({ body, scripts }: Props) {
     const persistLead = (event: SubmitEvent) => {
       const form = event.target instanceof HTMLFormElement ? event.target : null;
       if (!form) return;
+      if (form.dataset.leadSubmit === "managed") return;
       const path = window.location.pathname;
       const kind = path.includes("loan-with-collateral") ? "LOAN_WITH_COLLATERAL"
         : path.includes("loan-without-collateral") ? "LOAN_WITHOUT_COLLATERAL"
