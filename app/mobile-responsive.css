@@ -1,0 +1,16 @@
+/* Small-screen containment and touch ergonomics. Desktop and tablet rules remain untouched. */
+@media (max-width:767px){
+  html,body{width:100%;max-width:100%;overflow-x:clip}
+  body{min-width:0}
+  .cw-header{padding:10px;max-width:100%}
+  .cw-nav{min-width:0;gap:10px;padding:9px 12px}
+  .cw-logo{min-width:0;max-width:calc(100% - 54px)}
+  .cw-logo::before{max-width:100%;background-size:contain}
+  .cw-burger{flex:0 0 44px;width:44px;height:44px}
+  .cw-mobile{max-height:calc(100dvh - 88px);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain}
+  .cw-mobile .cw-toggle,.cw-mobile .cw-panel a{min-height:44px}
+  .cw-mobile .cw-panel a{display:flex;align-items:center;overflow-wrap:anywhere}
+  .cw-site-footer,.cw-site-footer *{min-width:0;max-width:100%}
+  #lender-explorer,#lender-explorer .lender-table-standard{min-width:0;max-width:100%}
+  #lender-explorer .semantic-lender-table td{overflow-wrap:anywhere}
+}

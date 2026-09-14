@@ -1,0 +1,5 @@
+import { AdminShell } from "@/components/admin-shell";
+import { requireAdmin } from "@/lib/admin-auth";
+import { connectToDatabase } from "@/lib/mongodb";
+import { AuditLog } from "@/lib/models";
+export default async function Audit(){const admin=await requireAdmin();await connectToDatabase();const logs=await AuditLog.find().sort({createdAt:-1}).limit(200).populate("actorId","name email").lean();const role=admin.roleId as unknown as {name?:string}|null;return <AdminShell name={admin.name} role={role?.name||"Admin"}><h1>Audit trail</h1><p className="cw-admin-kicker">Most recent security and administrative activity.</p><section className="cw-admin-panel"><div className="cw-admin-table-wrap"><table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Record</th></tr></thead><tbody>{logs.length?logs.map(log=>{const actor=log.actorId as unknown as {name?:string}|null;return <tr key={String(log._id)}><td>{log.createdAt.toLocaleString()}</td><td>{actor?.name||"System"}</td><td>{log.action}</td><td>{log.entityType}</td></tr>}) : <tr><td colSpan={4} className="cw-admin-empty">No audited actions yet.</td></tr>}</tbody></table></div></section></AdminShell>}

@@ -1,0 +1,3 @@
+"use client";
+import { useState } from "react";
+export default function AdminError({ reset }: { error: Error & { digest?: string }; reset: () => void }) { const [retrying, setRetrying] = useState(false); function retry() { setRetrying(true); reset(); } return <main className="cw-admin-main"><section className="cw-admin-panel" role="alert"><h1>We could not load this admin page</h1><p className="cw-admin-kicker" aria-live="polite">{retrying ? "Retrying with a fresh request…" : "Your data has not been changed. Check your connection and retry."}</p><button className="cw-admin-primary" type="button" onClick={retry} disabled={retrying}>{retrying ? "Retrying…" : "Retry page"}</button></section></main>; }

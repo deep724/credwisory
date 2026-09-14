@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Check eligibility | Credwisory</title>
+    <script defer src="site-header.js"></script></head>
+  <body>
+    <div class="top">
+      <div>
+        <span><b>✦</b> Trusted guidance for your education journey</span
+        ><span>Mon–Sat, 10 AM – 7 PM</span>
+      </div>
+    </div>
+    <main class="page">
+      <header class="heading">
+        <div class="eyebrow">Education loan eligibility</div>
+        <h1>Let’s find the right path forward.</h1>
+        <p>
+          Share a few details and we’ll help you understand your education-loan
+          options with more clarity.
+        </p>
+      </header>
+      <div class="layout">
+        <section class="card" id="card" aria-live="polite">
+          <div class="head">
+            <div class="pcopy">
+              <span id="scopy">Step 1 of 4</span
+              ><span id="percent">25% complete</span>
+            </div>
+            <div class="bar"><i id="bar"></i></div>
+          </div>
+          <div class="steps">
+            <div class="snav active" data-n="1">
+              <b class="dot">1</b><span class="sname">Contact</span>
+            </div>
+            <div class="snav" data-n="2">
+              <b class="dot">2</b><span class="sname">Study plan</span>
+            </div>
+            <div class="snav" data-n="3">
+              <b class="dot">3</b><span class="sname">Loan needs</span>
+            </div>
+            <div class="snav" data-n="4">
+              <b class="dot">4</b><span class="sname">Review</span>
+            </div>
+          </div>
+          <form id="form" novalidate>
+            <section class="step active" data-step="1">
+              <h2>Tell us about yourself</h2>
+              <p class="intro">
+                We’ll use these details only to guide your enquiry.
+              </p>
+              <div class="fields">
+                <div class="field full">
+                  <label>Full name <i class="req">*</i></label
+                  ><input id="name" placeholder="Your full name" />
+                  <div class="err"></div>
+                </div>
+                <div class="field">
+                  <label>Indian mobile number <i class="req">*</i></label
+                  ><input
+                    id="mobile"
+                    inputmode="numeric"
+                    placeholder="10-digit mobile number"
+                  />
+                  <div class="err"></div>
+                </div>
+                <div class="field">
+                  <label>Email address <i class="req">*</i></label
+                  ><input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                  />
+                  <div class="err"></div>
+                </div>
+                <div class="field">
+                  <label>City <i class="req">*</i></label
+                  ><input id="city" placeholder="Your city" />
+                  <div class="err"></div>
+                </div>
+                <div class="field">
+                  <label>PIN code <i class="req">*</i></label
+                  ><input
+                    id="pin"
+                    inputmode="numeric"
+                    placeholder="6-digit PIN code"
+                  />
+                  <div class="err"></div>
+                </div>
+              </div>
+            </section>
+            <section class="step" data-step="2">
+              <h2>Your study plan</h2>
+              <p class="intro">
+                A little context helps us make the options relevant.
+              </p>
+              <div class="fields">
+                <div class="field">
+                  <label>Study destination <i class="req">*</i></label
+                  ><select id="destination">
+                    <option value="">Select destination</option>
+                    <option>United States</option>
+                    <option>United Kingdom</option>
+                    <option>Canada</option>
+                    <option>Germany</option>
+                    <option>Australia</option>
+                    <option>Other</option>
+                  </select>
+                  <div class="err"></div>
+                </div>
+                <div class="field">
+                  <label>University name <i class="req">*</i></label
+                  ><input
+                    id="university"
+                    placeholder="University or institution"
+                  />
+                  <div class="err"></div>
+                </div>
+                <div class="field">
+                  <label>Course / degree level <i class="req">*</i></label
+                  ><input
+                    id="course"
+                    placeholder="e.g. Master's in Data Science"
+                  />
+                  <div class="err"></div>
+                </div>
+                <div class="field">
+                  <label>Expected intake <i class="req">*</i></label
+                  ><select id="intake">
+                    <option value="">Select intake</option>
+                    <option>2026</option>
+                    <option>2027</option>
+                    <option>2028</option>
+                    <option>Other</option>
+                  </select>
+                  <div class="err"></div>
+                </div>
+                <div class="field full">
+                  <label
+                    >Estimated annual tuition fee in INR
+                    <i class="req">*</i></label
+                  ><input
+                    id="tuition"
+                    inputmode="numeric"
+                    placeholder="e.g. 2500000"
+                  />
+                  <div class="err"></div>
+                </div>
+              </div>
+            </section>
+            <section class="step" data-step="3">
+              <h2>Your loan needs</h2>
+              <p class="intro">
+                This gives a helpful starting point for comparing routes.
+              </p>
+              <div class="fields">
+                <div class="field full">
+                  <label
+                    >Estimated loan amount in INR <i class="req">*</i></label
+                  ><input
+                    id="loan"
+                    inputmode="numeric"
+                    placeholder="e.g. 3000000"
+                  />
+                  <div class="err"></div>
+                </div>
+                <div class="field">
+                  <label>Collateral preference <i class="req">*</i></label
+                  ><select id="collateral">
+                    <option value="">Select preference</option>
+                    <option>Prefer without collateral</option>
+                    <option>Can provide collateral</option>
+                    <option>Need help deciding</option>
+                  </select>
+                  <div class="err"></div>
+                </div>
+                <div class="field">
+                  <label>Co-applicant availability <i class="req">*</i></label
+                  ><select id="coapplicant">
+                    <option value="">Select availability</option>
+                    <option>Available</option>
+                    <option>Not available</option>
+                    <option>Not sure</option>
+                  </select>
+                  <div class="err"></div>
+                </div>
+                <div class="field full">
+                  <label>Annual family income range <i class="req">*</i></label
+                  ><select id="income">
+                    <option value="">Select range</option>
+                    <option>Under ₹5 lakh</option>
+                    <option>₹5 lakh – ₹10 lakh</option>
+                    <option>₹10 lakh – ₹20 lakh</option>
+                    <option>Above ₹20 lakh</option>
+                  </select>
+                  <div class="err"></div>
+                </div>
+              </div>
+            </section>
+            <section class="step" data-step="4">
+              <h2>Review your enquiry</h2>
+              <p class="intro">
+                Please check the details before we prepare your options.
+              </p>
+              <div class="review" id="review"></div>
+              <label class="consent" id="cwrap"
+                ><input id="consent" type="checkbox" /><span
+                  >I agree to be contacted by Credwisory regarding my
+                  education-loan enquiry and understand that this is not a loan
+                  approval.</span
+                ></label
+              >
+              <div class="err" id="cerr"></div>
+            </section>
+            <div class="actions">
+              <div>
+                <button type="button" class="btn secondary hidden" id="prev">
+                  ← Previous
+                </button>
+                <button type="button" class="start" id="reset">
+                  Start over
+                </button>
+              </div>
+              <button type="button" class="btn primary" id="next">
+                Continue →
+              </button>
+            </div>
+          </form>
+        </section>
+        <aside class="trust">
+          <h3>Guidance built around you</h3>
+          <div class="tp">
+            <b class="ti">✦</b><span>10+ lending partners</span>
+          </div>
+          <div class="tp">
+            <b class="ti">✓</b><span>100% digital process</span>
+          </div>
+          <div class="tp">
+            <b class="ti">◎</b><span>No impact on credit score</span>
+          </div>
+        </aside>
+      </div>
+    </main>
+    <script>
+      (() => {
+        const K = "credwisoryEligibilityDraft",
+          $ = (x) => document.getElementById(x),
+          ids = [
+            "name",
+            "mobile",
+            "email",
+            "city",
+            "pin",
+            "destination",
+            "university",
+            "course",
+            "intake",
+            "tuition",
+            "loan",
+            "collateral",
+            "coapplicant",
+            "income",
+            "consent",
+          ];
+        let step = 1;
+        const money = (x) => {
+          let n = Number(String(x).replace(/\D/g, ""));
+          return n > 0 ? "₹" + new Intl.NumberFormat("en-IN").format(n) : "—";
+        };
+        const esc = (x) =>
+          String(x || "—").replace(
+            /[&<>"']/g,
+            (c) =>
+              ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;",
+              })[c],
+          );
+        function save() {
+          let d = { step };
+          ids.forEach(
+            (i) =>
+              (d[i] = $(i).type === "checkbox" ? $(i).checked : $(i).value),
+          );
+          localStorage.setItem(K, JSON.stringify(d));
+        }
+        function err(i, m = "") {
+          let e = $(i),
+            w = e.closest(".field") || $("cwrap"),
+            n = w.querySelector(".err") || $("cerr");
+          w.classList.toggle("invalid", !!m);
+          n.textContent = m;
+        }
+        function valid(s) {
+          let map = {
+            1: ["name", "mobile", "email", "city", "pin"],
+            2: ["destination", "university", "course", "intake", "tuition"],
+            3: ["loan", "collateral", "coapplicant", "income"],
+          };
+          if (s === 4) {
+            err(
+              "consent",
+              $("consent").checked
+                ? ""
+                : "Please confirm your consent to continue.",
+            );
+            return $("consent").checked;
+          }
+          let ok = true;
+          map[s].forEach((i) => {
+            let v = $(i).value.trim(),
+              m = !v ? "This field is required." : "";
+            if (v && i === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))
+              m = "Enter a valid email address.";
+            if (
+              v &&
+              i === "mobile" &&
+              !/^[6-9]\d{9}$/.test(v.replace(/\D/g, ""))
+            )
+              m = "Enter a valid 10-digit Indian mobile number.";
+            if (v && i === "pin" && !/^\d{6}$/.test(v))
+              m = "Enter a valid 6-digit PIN code.";
+            if (
+              v &&
+              ["tuition", "loan"].includes(i) &&
+              Number(v.replace(/\D/g, "")) <= 0
+            )
+              m = "Enter an amount greater than zero.";
+            err(i, m);
+            ok &&= !m;
+          });
+          return ok;
+        }
+        function reviews() {
+          let sec = (t, n, a) =>
+            `<div class="rs"><div class="rt"><h3>${t}</h3><button type="button" class="edit" data-e="${n}">Edit</button></div><div class="rg">${a.map((x) => `<div class="ri"><small>${x[0]}</small><span>${esc(x[1])}</span></div>`).join("")}</div></div>`;
+          $("review").innerHTML =
+            sec("Contact", 1, [
+              ["Name", $("name").value],
+              ["Mobile", $("mobile").value],
+              ["Email", $("email").value],
+              ["City", $("city").value],
+              ["PIN code", $("pin").value],
+            ]) +
+            sec("Study plan", 2, [
+              ["Destination", $("destination").value],
+              ["University", $("university").value],
+              ["Course", $("course").value],
+              ["Intake", $("intake").value],
+              ["Annual tuition", money($("tuition").value)],
+            ]) +
+            sec("Loan needs", 3, [
+              ["Loan amount", money($("loan").value)],
+              ["Collateral", $("collateral").value],
+              ["Co-applicant", $("coapplicant").value],
+              ["Family income", $("income").value],
+            ]);
+          document
+            .querySelectorAll("[data-e]")
+            .forEach((x) => (x.onclick = () => show(+x.dataset.e)));
+        }
+        function show(n) {
+          step = n;
+          document
+            .querySelectorAll(".step")
+            .forEach((x) =>
+              x.classList.toggle("active", +x.dataset.step === step),
+            );
+          document.querySelectorAll(".snav").forEach((x) => {
+            let n = +x.dataset.n;
+            x.classList.toggle("active", n === step);
+            x.classList.toggle("done", n < step);
+            x.querySelector(".dot").textContent = n < step ? "✓" : n;
+          });
+          $("scopy").textContent = `Step ${step} of 4`;
+          $("percent").textContent = `${step * 25}% complete`;
+          $("bar").style.width = `${step * 25}%`;
+          $("prev").classList.toggle("hidden", step === 1);
+          $("next").textContent =
+            step === 4 ? "Find my loan options" : "Continue →";
+          if (step === 4) reviews();
+          save();
+        }
+        function result() {
+          let first = $("name").value.trim().split(/\s+/)[0] || "there",
+            c = $("collateral").value,
+            status =
+              c === "Prefer without collateral"
+                ? "Exploring collateral-free options"
+                : c === "Can provide collateral"
+                  ? "Collateral-backed options available"
+                  : "An expert will help you compare options";
+          $("form").classList.add("hidden");
+          document.querySelector(".steps").classList.add("hidden");
+          document.querySelector(".head").classList.add("hidden");
+          $("card").insertAdjacentHTML(
+            "beforeend",
+            `<section class="results"><span class="badge">Enquiry prepared</span><h2>Your enquiry is ready</h2><p class="intro">Thanks, ${esc(first)}. Here’s a clear next view of your education-loan enquiry.</p><div class="amount"><small>Approximate loan requirement</small><strong>${money($("loan").value)}</strong><em>Based on the amount you shared</em></div><div class="status">${esc(status)}</div><div class="label">Illustrative matches</div><div class="matches"><div class="match"><b>Study Finance Path</b><span>International education route</span><i>Illustrative only</i></div><div class="match"><b>FutureLearn Lending</b><span>Flexible co-applicant review</span><i>Illustrative only</i></div><div class="match"><b>Global Scholar Finance</b><span>Guided documentation path</span><i>Illustrative only</i></div></div><div class="label">Document checklist</div><div class="checklist"><span class="check">Passport</span><span class="check">Academic transcripts</span><span class="check">Admission / offer letter</span><span class="check">Tuition fee details</span><span class="check">Income documents</span></div><div class="notice">This is an eligibility enquiry, not a loan approval or rate guarantee.</div><div class="ra"><button class="btn primary" id="new">Start a new enquiry</button><a class="btn secondary" href="index.html">Explore education loans</a></div></section>`,
+          );
+          $("new").onclick = reset;
+        }
+        function submit() {
+          if (!valid(4)) return;
+          $("next").disabled = true;
+          document
+            .querySelectorAll(".step")
+            .forEach((x) => x.classList.remove("active"));
+          document.querySelector(".actions").classList.add("hidden");
+          $("form").insertAdjacentHTML(
+            "afterbegin",
+            '<div class="loading" id="load"><div class="spin"></div><h2>Finding education-loan options for you…</h2><p class="intro">Putting together your enquiry overview.</p></div>',
+          );
+          setTimeout(() => {
+            $("load").remove();
+            save();
+            result();
+          }, 1500);
+        }
+        function reset() {
+          if (
+            confirm("Start a new enquiry? Your saved progress will be cleared.")
+          ) {
+            localStorage.removeItem(K);
+            location.reload();
+          }
+        }
+        try {
+          let d = JSON.parse(localStorage.getItem(K));
+          if (d) {
+            ids.forEach((i) => {
+              $(i).type === "checkbox"
+                ? ($(i).checked = d[i])
+                : ($(i).value = d[i] || "");
+            });
+            step = Math.min(4, Math.max(1, +d.step || 1));
+          }
+        } catch (e) {}
+        ids.forEach((i) =>
+          $(i).addEventListener(
+            $(i).type === "checkbox" ? "change" : "input",
+            () => {
+              err(i, "");
+              save();
+            },
+          ),
+        );
+        $("next").onclick = () =>
+          step === 4 ? submit() : valid(step) && show(step + 1);
+        $("prev").onclick = () => show(step - 1);
+        $("reset").onclick = reset;
+        show(step);
+      })();
+    </script>
+  </body>
+</html>
+<script>(()=>{const cp={0x20ac:0x80,0x201a:0x82,0x192:0x83,0x201e:0x84,0x2026:0x85,0x2020:0x86,0x2021:0x87,0x2018:0x91,0x2019:0x92,0x201c:0x93,0x201d:0x94,0x2022:0x95,0x2013:0x96,0x2014:0x97,0x2122:0x99};const f=s=>{if(!/[ÃÂâ�]/.test(s))return s;try{return new TextDecoder('utf-8',{fatal:true}).decode(Uint8Array.from([...s],c=>cp[c.codePointAt(0)]??c.charCodeAt(0)))}catch{return s}};const r=n=>{if(n.nodeType===3)n.nodeValue=f(n.nodeValue);else if(n.nodeType===1&&!/^(SCRIPT|STYLE|SVG)$/i.test(n.tagName))n.childNodes.forEach(r)};document.addEventListener('DOMContentLoaded',()=>r(document.body))})();</script>
+<script>document.querySelectorAll('body > .top, body > a.brand').forEach(node=>node.remove());</script>

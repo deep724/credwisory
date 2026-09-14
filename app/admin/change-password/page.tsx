@@ -1,0 +1,5 @@
+"use client";
+import { useActionState } from "react";
+import { useRouter } from "next/navigation";
+import { changeOwnPassword } from "@/app/admin/actions";
+export default function ChangePasswordPage() { const router = useRouter(); const [state, action, pending] = useActionState(async (_: unknown, formData: FormData) => { const result = await changeOwnPassword(formData); if (result?.ok) { router.replace("/admin"); router.refresh(); } return result; }, null); return <main className="admin-login"><form action={action}><h1>Create your password</h1><p>Your temporary password must be changed before continuing.</p><label>New password<input name="password" type="password" autoComplete="new-password" minLength={12} required /></label><label>Confirm password<input name="confirmation" type="password" autoComplete="new-password" minLength={12} required /></label>{state?.error && <p role="alert">{state.error}</p>}<button disabled={pending}>{pending ? "Saving…" : "Set password"}</button></form></main>; }
