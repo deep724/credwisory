@@ -2,14 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 const groups = [
   ["Education Loans", [["Check eligibility", "eligibility.html"], ["How education loans work", "how-education-loans-work.html"], ["Loan without collateral", "loan-without-collateral.html"], ["Loan with collateral", "loan-with-collateral.html"]]],
-  ["Lenders", [["Compare all lenders", "compare-all-lenders.html"], ["Bank lenders", "bank-lenders.html"], ["NBFC lenders", "nbfc-lenders.html"], ["International lenders", "international-lenders.html"]]],
-  ["Scholarships", [["Explore Scholarships", "scholarships.html"], ["Scholarship Eligibility", "scholarship-eligibility.html"], ["SOP Guidance", "sop-guidance.html"], ["Application Guidance", "application-guidance.html"]]],
-  ["Tools", [["EMI Calculator", "emi-calculator.html"], ["Car Loan Calculator", "car-loan-calculator.html"], ["Loan Takeover Calculator", "loan-takeover-calculator.html"], ["Interest Rate Comparison", "interest-rate-comparison.html"]]],
+  ["Lenders", [["All Lenders", "/lenders"], ["Compare Lenders", "compare-all-lenders.html"], ["Bank Loans", "/lenders?category=bank"], ["NBFC Loans", "/lenders?category=nbfc"], ["International Lenders", "/lenders?category=international"]]],
+  ["Scholarships", [["Explore Scholarships", "scholarships.html"], ["Scholarship Eligibility", "scholarship-eligibility.html"]]],
+  ["Tools", [["EMI Calculator", "emi-calculator.html"], ["Loan Takeover Calculator", "loan-takeover-calculator.html"], ["Interest Rate Comparison", "interest-rate-comparison.html"]]],
   ["Resources", [["Blogs", "blogs.html"], ["FAQ", "faq.html"]]],
-  ["Contact", [["Talk to an Expert", "talk-to-an-expert.html"], ["Refer a Friend", "refer-a-friend.html"]]],
+  ["Contact", [["Talk to an expert", "talk-to-an-expert.html"], ["Work with Credwisory", "contact.html"]]],
+  ["Refer and Earn", [["Refer and Earn", "refer-a-friend.html"]]],
 ] as const;
 
 const id = (name: string, mobile = false) => `cw-${name.toLowerCase().replace(/[^a-z]+/g, "-")}${mobile ? "-mobile" : ""}`;
@@ -65,7 +67,7 @@ export function SiteHeader() {
       <div className={`cw-panel${isOpen ? " open" : ""}`} id={menuId}>
         {links.map(([label, href]) => {
           const active = pathname === `/${href}`;
-          return <a key={href} href={href} aria-current={active ? "page" : undefined} onClick={close}>{label}</a>;
+          return href.startsWith("/") ? <Link key={href} href={href} aria-current={active ? "page" : undefined} onClick={close}>{label}</Link> : <a key={href} href={href} aria-current={active ? "page" : undefined} onClick={close}>{label}</a>;
         })}
       </div>
     </div>;

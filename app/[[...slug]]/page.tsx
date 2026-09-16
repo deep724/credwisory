@@ -7,12 +7,18 @@ import { loadLegacyPage, pathnameToLegacyFile } from "@/lib/legacy";
 type Props = { params: Promise<{ slug?: string[] }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const page = await loadLegacyPage(pathnameToLegacyFile((await params).slug));
-  return page ? { title: page.title, description: page.description } : {};
+  const slug = (await params).slug;
+  const filename = slug?.join("/") === "lenders" ? "compare-all-lenders.html" : pathnameToLegacyFile(slug);
+  const page = await loadLegacyPage(filename);
+  // The historical home document was saved with mojibake in its title. Keep
+  // the canonical title in application source rather than repairing it in the
+  // browser after rendering.
+  return page ? { title: filename === "index.html" ? { absolute: "Credwisory | Education loans, made clear." } : page.title, description: page.description } : {};
 }
 
 export default async function Page({ params }: Props) {
-  const filename = pathnameToLegacyFile((await params).slug);
+  const slug = (await params).slug;
+  const filename = slug?.join("/") === "lenders" ? "compare-all-lenders.html" : pathnameToLegacyFile(slug);
   const page = await loadLegacyPage(filename);
   if (!page) notFound();
   // Tailwind is compiled from the preserved legacy HTML at build time. Do not
@@ -27,10 +33,20 @@ export default async function Page({ params }: Props) {
     // hard-coded list. One API-backed widget is added below instead.
     && !(filename === "index.html" && script.includes("#lender-explorer")),
   );
+  // The preserved home document accumulated several competing inline owners
+  // for menus, lender selection, and calculator fields. Keep source-owned
+  // implementations as the sole interactive owners.
+  if (filename === "index.html") {
+    scripts.splice(0, scripts.length, ...scripts.filter((script) => /\bsrc=["'][^"']+/.test(script) && !/site-header\.js/.test(script)));
+    scripts.push('<script src="/homepage-calculators.js"></script>');
+  }
   if (["index.html", "compare-all-lenders.html", "bank-lenders.html", "nbfc-lenders.html", "international-lenders.html"].includes(filename)) scripts.unshift('<script src="/lender-data-normalizer.js"></script>');
   if (["index.html", "lender-enquiry.html", "compare-all-lenders.html", "bank-lenders.html", "nbfc-lenders.html", "international-lenders.html", "interest-rate-comparison.html"].includes(filename)) scripts.unshift('<script src="/lender-application-modal.js"></script>');
   if (["index.html", "compare-all-lenders.html", "bank-lenders.html", "nbfc-lenders.html", "international-lenders.html", "interest-rate-comparison.html"].includes(filename)) scripts.unshift('<script src="/lender-logo-enhancements.js"></script>');
-  if (filename === "index.html") scripts.push('<script src="/homepage-lender-directory.js"></script>');
+  if (filename === "index.html") scripts.push('<script src="/homepage-lender-directory.js"></script>', '<script src="/lead-popup.js"></script>');
+  if (["eligibility.html", "scholarship-eligibility.html"].includes(filename)) scripts.push('<script src="/contact-fields-only.js"></script>');
+  if (filename === "scholarships.html") scripts.push('<script src="/scholarship-cleanup.js"></script>');
+  if (filename === "compare-all-lenders.html") scripts.push('<script src="/lender-tabs.js"></script>');
   if (["compare-all-lenders.html", "bank-lenders.html", "nbfc-lenders.html", "international-lenders.html"].includes(filename)) scripts.push('<script src="/lender-mobile-comparison.js"></script>');
   return <>
     {page.stylesheets.map((href) => <link key={href} rel="stylesheet" href={href} />)}

@@ -7,10 +7,10 @@ import "./lender-mobile-comparison.css";
 import "./mobile-responsive.css";
 
 export const metadata: Metadata = {
-  title: { default: "Credwisory", template: "%s | Credwisory" },
+  title: { default: "Credwisory | Education loans, made clear.", template: "%s | Credwisory" },
   description: "Education-loan guidance, made clearer.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
-  return <html lang="en"><body>{children}</body></html>;
+  return <html lang="en"><head><meta charSet="utf-8" /></head><body>{children}</body></html>;
 }

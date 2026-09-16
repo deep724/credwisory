@@ -9,7 +9,7 @@ const pageNames = new Set([
   "scholarship-eligibility.html", "sop-guidance.html", "application-guidance.html", "blogs.html",
   "contact.html", "faq.html", "how-education-loans-work.html", "loan-with-collateral.html",
   "loan-without-collateral.html", "refer-a-friend.html", "talk-to-an-expert.html",
-  "emi-calculator.html", "car-loan-calculator.html", "loan-takeover-calculator.html", "interest-rate-comparison.html"
+  "emi-calculator.html", "loan-takeover-calculator.html", "interest-rate-comparison.html"
 ]);
 const pagesWithExtractedStyles = new Set([
   "application-guidance.html", "blogs.html", "eligibility.html", "faq.html", "how-education-loans-work.html",

@@ -14,11 +14,15 @@ const applicationStatus = z.enum(["SUBMITTED", "IN_REVIEW", "DOCUMENTS_PENDING",
 async function audit(actorId: string, action: string, entityType: string, entityId: string) { await AuditLog.create({ actorId, action, entityType, entityId }); }
 
 export async function updateLeadStatus(formData: FormData) {
-  const admin = await requireAdmin(); const value = z.object({ id, status }).safeParse(Object.fromEntries(formData)); if (!value.success) return;
+  const admin = await requireAdmin(); const value = z.object({ id, status }).safeParse(Object.fromEntries(formData)); if (!value.success) return { error: "Choose a valid status." };
   await connectToDatabase();
+  const lead = await Lead.findOne({ _id: value.data.id, deletedAt: null }).select("status").lean() as { status?: string } | null;
+  if (!lead) return { error: "This enquiry is no longer available." };
+  if (lead.status === value.data.status) return { ok: true, unchanged: true };
   await Lead.updateOne({ _id: value.data.id }, { $set: { status: value.data.status } });
   await LeadActivity.create({ leadId: value.data.id, actorId: admin.id, action: `Status changed to ${value.data.status}` });
   await audit(admin.id, "lead.status_updated", "Lead", value.data.id); revalidatePath("/admin/leads"); revalidatePath("/admin");
+  return { ok: true };
 }
 export async function updateLeadDetails(formData: FormData) {
   const admin = await requireAdmin(); const value = z.object({ id, status, assignedToId: z.union([id, z.literal("")]), followUpAt: z.string().max(40).optional() }).safeParse(Object.fromEntries(formData)); if (!value.success) return;
@@ -40,11 +44,11 @@ export async function addLeadNote(formData: FormData) {
 }
 const lenderInput = z.object({ id: z.union([id, z.literal("")]).optional(), name: z.string().trim().min(2).max(120), slug: z.string().trim().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/), lenderType: z.enum(["BANK", "NBFC", "INTERNATIONAL"]), displayOrder: z.coerce.number().int().min(0).max(9999), published: z.enum(["true", "false"]), securedLoan: z.string().trim().max(120), unsecuredLoan: z.string().trim().max(120), securedRate: z.string().trim().max(120), unsecuredRate: z.string().trim().max(120), moratorium: z.string().trim().max(160), tenure: z.string().trim().max(120), foreclosure: z.string().trim().max(120), processingFee: z.string().trim().max(120), logoUrl: z.string().trim().url().or(z.literal("")), applicationUrl: z.string().trim().url().or(z.literal("")) });
 export async function saveLender(formData: FormData) {
-  const admin = await requireAdmin(); const value = lenderInput.safeParse(Object.fromEntries(formData)); if (!value.success) return;
+  const admin = await requireAdmin(); const value = lenderInput.safeParse(Object.fromEntries(formData)); if (!value.success) return { error: "Please correct the highlighted lender fields and try again." };
   await connectToDatabase(); const { id: lenderId, published, securedLoan, unsecuredLoan, securedRate, unsecuredRate, moratorium, tenure, foreclosure, processingFee, ...data } = value.data;
   const document = { ...data, published: published === "true", logoUrl: data.logoUrl || undefined, applicationUrl: data.applicationUrl || undefined, comparison: { secured: securedLoan, unsecured: unsecuredLoan, securedRate, unsecuredRate, moratorium, tenure, foreclosure, fee: processingFee } };
   const lender = lenderId ? await Lender.findByIdAndUpdate(lenderId, { $set: document }, { new: true, runValidators: true }) : await Lender.create(document);
-  if (!lender) return; await audit(admin.id, lenderId ? "lender.updated" : "lender.created", "Lender", String(lender._id)); revalidatePath("/admin/lenders"); revalidatePath("/"); revalidatePath("/compare-all-lenders.html");
+  if (!lender) return { error: "The lender could not be found." }; await audit(admin.id, lenderId ? "lender.updated" : "lender.created", "Lender", String(lender._id)); revalidatePath("/admin/lenders"); revalidatePath("/"); revalidatePath("/compare-all-lenders.html"); return { ok: true };
 }
 export async function deleteLender(formData: FormData) {
   const admin = await requireRole("SUPER_ADMIN"); const value = z.object({ id, confirm: z.literal("DELETE") }).safeParse(Object.fromEntries(formData)); if (!value.success) return;

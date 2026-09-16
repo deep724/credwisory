@@ -153,15 +153,12 @@ window.CredwisoryLenders = (() => {
       [
         ["Explore Scholarships", "scholarships.html"],
         ["Scholarship Eligibility", "scholarship-eligibility.html"],
-        ["SOP Guidance", "sop-guidance.html"],
-        ["Application Guidance", "application-guidance.html"],
       ],
     ],
     [
       "Tools",
       [
         ["EMI Calculator", "emi-calculator.html"],
-        ["Car Loan Calculator", "car-loan-calculator.html"],
         ["Loan Takeover Calculator", "loan-takeover-calculator.html"],
         ["Interest Rate Comparison", "interest-rate-comparison.html"],
       ],

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { updateLeadStatus } from "@/app/admin/actions";
+import { LeadStatusControl } from "@/components/lead-status-control";
 import { AdminFilterSelect } from "@/components/admin-filter-select";
 import { AdminShell } from "@/components/admin-shell";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -42,7 +42,7 @@ export default async function Leads({ searchParams }: { searchParams: Promise<Qu
     <h1>Student leads</h1>
     <p className="cw-admin-kicker">{total} enquiry record{total === 1 ? "" : "s"} across public forms and referrals.</p>
     <form className="cw-admin-toolbar">
-      <input name="q" defaultValue={p.q} placeholder="Search name, email or phone" aria-label="Search leads" />
+      <label>Search<input name="q" defaultValue={p.q} placeholder="Name, email or phone" /></label>
       <AdminFilterSelect name="type" value={p.type} placeholder="All enquiry types" ariaLabel="Filter by enquiry type" options={types.map((value) => ({ value, label: label(value) }))} />
       <AdminFilterSelect name="status" value={p.status} placeholder="All statuses" ariaLabel="Filter by status" options={statuses.map((value) => ({ value, label: label(value) }))} />
       <input name="sourcePage" defaultValue={p.sourcePage} placeholder="Source page" aria-label="Filter source page" />
@@ -50,13 +50,14 @@ export default async function Leads({ searchParams }: { searchParams: Promise<Qu
       <AdminFilterSelect name="assigned" value={p.assigned} placeholder="All assigned admins" ariaLabel="Filter by assigned admin" options={staff.map((user) => ({ value: String(user._id), label: user.name }))} />
       <AdminFilterSelect name="multiple" value={p.multiple} placeholder="All students" ariaLabel="Filter by student grouping" options={[{ value: "true", label: "Multiple enquiries" }]} />
       <button className="cw-admin-primary">Apply filters</button>
+      <Link className="cw-admin-reset" href="/admin/leads">Reset filters</Link>
     </form>
     <section className="cw-admin-panel">
       <div className="cw-admin-table-wrap"><table><thead><tr><th>Student</th><th>Enquiry type</th><th>Source page</th><th>Assigned</th><th>Current status</th><th>Created</th></tr></thead><tbody>
         {leads.length ? leads.map((lead) => {
           const profile = lead.studentProfileId as unknown as { _id?: unknown; enquiryCount?: number } | null;
           const assigned = lead.assignedToId as unknown as { name?: string } | null;
-          return <tr key={String(lead._id)}><td><strong>{lead.name}</strong><br /><small>{lead.email || lead.phone || "No contact detail"}</small><br />{profile?._id ? <Link className="cw-admin-profile-link" href={`/admin/students/${profile._id}`}>View student profile · {profile.enquiryCount || 1} linked {profile.enquiryCount === 1 ? "enquiry" : "enquiries"}</Link> : <small>Profile pending backfill</small>}</td><td><span className="cw-admin-type">{label(lead.type)}</span></td><td>{sourceLabel(lead.sourcePage)}</td><td>{assigned?.name || "Unassigned"}</td><td><div className="cw-status-control"><span className={`cw-admin-badge cw-status-${lead.status.toLowerCase()}`}>{label(lead.status)}</span><form action={updateLeadStatus} className="cw-admin-actions"><input type="hidden" name="id" value={String(lead._id)} /><select name="status" aria-label={`Update ${lead.name}'s status`} defaultValue={lead.status}>{statuses.map((value) => <option key={value} value={value}>{label(value)}</option>)}</select><button type="submit">Save status</button></form></div></td><td>{lead.createdAt.toLocaleDateString()}</td></tr>;
+          return <tr key={String(lead._id)}><td><strong>{lead.name}</strong><br /><small>{lead.email || lead.phone || "No contact detail"}</small><br />{profile?._id ? <Link className="cw-admin-profile-link" href={`/admin/students/${profile._id}`}>View student profile · {profile.enquiryCount || 1} linked {profile.enquiryCount === 1 ? "enquiry" : "enquiries"}</Link> : <small>Profile pending backfill</small>}</td><td><span className="cw-admin-type">{label(lead.type)}</span></td><td>{sourceLabel(lead.sourcePage)}</td><td>{assigned?.name || "Unassigned"}</td><td><LeadStatusControl id={String(lead._id)} name={lead.name} status={lead.status} statuses={statuses}/></td><td>{lead.createdAt.toLocaleDateString()}</td></tr>;
         }) : <tr><td colSpan={6} className="cw-admin-empty">No leads match these filters. Clear a filter or wait for a new enquiry.</td></tr>}
       </tbody></table></div>
       {maxPage > 1 && <nav className="cw-admin-actions" aria-label="Lead pagination" style={{ marginTop: 16 }}><span>Page {page} of {maxPage}</span>{page > 1 && <Link href={`/admin/leads?${new URLSearchParams([...query, ["page", String(page - 1)]])}`}>Previous</Link>}{page < maxPage && <Link href={`/admin/leads?${new URLSearchParams([...query, ["page", String(page + 1)]])}`}>Next</Link>}</nav>}
