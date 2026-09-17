@@ -8,6 +8,7 @@ type Props = { params: Promise<{ slug?: string[] }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const slug = (await params).slug;
+  const cleanPath = !slug?.length ? "/" : `/${slug.join("/").replace(/\.html$/, "")}`;
   const filename =
     slug?.join("/") === "lenders"
       ? "compare-all-lenders.html"
@@ -23,6 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             ? { absolute: "Credwisory | Education loans, made clear." }
             : page.title,
         description: page.description,
+        alternates: { canonical: cleanPath },
       }
     : {};
 }
@@ -98,6 +100,7 @@ export default async function Page({ params }: Props) {
   if (filename === "index.html")
     scripts.push(
       '<script src="/homepage-lender-directory.js"></script>',
+      '<script src="/homepage-lender-options.js"></script>',
       '<script src="/homepage-journey.js"></script>',
     );
   if (

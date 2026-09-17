@@ -8,17 +8,17 @@ const groups = [
   [
     "Education Loans",
     [
-      ["Check eligibility", "eligibility.html"],
+      ["Check eligibility", "/eligibility"],
       ["How education loans work", "/#how-it-works"],
-      ["Loan without collateral", "loan-without-collateral.html"],
-      ["Loan with collateral", "loan-with-collateral.html"],
+      ["Loan without collateral", "/loan-without-collateral"],
+      ["Loan with collateral", "/loan-with-collateral"],
     ],
   ],
   [
     "Lenders",
     [
       ["All Lenders", "/lenders"],
-      ["Compare Lenders", "compare-all-lenders.html"],
+      ["Compare Lenders", "/compare-all-lenders"],
       ["Bank Loans", "/lenders?category=bank"],
       ["NBFC Loans", "/lenders?category=nbfc"],
       ["International Lenders", "/lenders?category=international"],
@@ -27,33 +27,33 @@ const groups = [
   [
     "Scholarships",
     [
-      ["Explore Scholarships", "scholarships.html"],
-      ["Scholarship Eligibility", "scholarship-eligibility.html"],
+      ["Explore Scholarships", "/scholarships"],
+      ["Scholarship Eligibility", "/scholarship-eligibility"],
     ],
   ],
   [
     "Tools",
     [
-      ["EMI Calculator", "emi-calculator.html"],
-      ["Loan Takeover Calculator", "loan-takeover-calculator.html"],
-      ["Interest Rate Comparison", "interest-rate-comparison.html"],
+      ["EMI Calculator", "/emi-calculator"],
+      ["Loan Takeover Calculator", "/loan-takeover-calculator"],
+      ["Interest Rate Comparison", "/interest-rate-comparison"],
     ],
   ],
   [
     "Resources",
     [
       ["Blogs", "/blogs"],
-      ["FAQ", "faq.html"],
+      ["FAQ", "/faq"],
     ],
   ],
   [
     "Contact",
     [
-      ["Talk to an expert", "talk-to-an-expert.html"],
-      ["Work with Credwisory", "contact.html"],
+      ["Talk to an expert", "/talk-to-an-expert"],
+      ["Work with Credwisory", "/contact"],
     ],
   ],
-  ["Refer and Earn", [["Refer and Earn", "refer-a-friend.html"]]],
+  ["Refer and Earn", [["Refer and Earn", "/refer-a-friend"]]],
 ] as const;
 
 const id = (name: string, mobile = false) =>
@@ -165,7 +165,7 @@ export function SiteHeader() {
         </button>
         <div className={`cw-panel${isOpen ? " open" : ""}`} id={menuId}>
           {links.map(([label, href]) => {
-            const active = pathname === `/${href}`;
+            const active = pathname === href;
             return href.startsWith("/") ? (
               <Link
                 key={href}
@@ -194,18 +194,18 @@ export function SiteHeader() {
   return (
     <header className="cw-header" data-cw-header="true">
       <nav className="cw-nav" aria-label="Main navigation">
-        <a className="cw-logo" href="index.html" aria-label="Credwisory home">
+        <Link className="cw-logo" href="/" aria-label="Credwisory home">
           <i aria-hidden="true" />
           <span>
             Credwisory<small>SOLUTIONS LLP</small>
           </span>
-        </a>
+        </Link>
         <div className="cw-desktop">
           {groups.map(([name, links]) => menu(name, links))}
         </div>
-        <a className="cw-cta" href="eligibility.html">
+        <Link className="cw-cta" href="/eligibility">
           Check eligibility
-        </a>
+        </Link>
         <button
           className="cw-burger"
           type="button"

@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { connectToDatabase } from "@/lib/mongodb";
 import { BlogPost } from "@/lib/models";
+import sanitizeHtml from "sanitize-html";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,7 @@ const words = (content: string) =>
         .split(/\s+/).length / 200,
     ),
   );
+const safePublicContent = (content: string) => sanitizeHtml(content, { allowedTags: ["p", "br", "strong", "em", "u", "h2", "h3", "ul", "ol", "li", "blockquote", "a", "img"], allowedAttributes: { a: ["href", "target", "rel"], img: ["src", "alt"] }, allowedSchemes: ["http", "https"] });
 async function publishedPost(slug: string): Promise<any> {
   await connectToDatabase();
   return (await BlogPost.findOne({
@@ -61,7 +63,7 @@ export default async function BlogArticle({
     publishedAt: { $lte: new Date() },
     ...(post.category ? { category: post.category } : {}),
   })
-    .sort({ publishedAt: -1 })
+    .sort({ publishedAt: -1, _id: -1 })
     .limit(3)
     .lean();
   return (
@@ -73,6 +75,7 @@ export default async function BlogArticle({
           {post.category || "Article"}
         </nav>
         <span className="cw-blog-meta">{post.category || "Guidance"}</span>
+        {post.tags?.length ? <p className="cw-blog-tags">{post.tags.join(" · ")}</p> : null}
         <h1>{post.title}</h1>
         <p className="cw-blog-byline">
           By {post.author || "Credwisory team"} ·{" "}
@@ -89,16 +92,16 @@ export default async function BlogArticle({
         />
         <article
           className="cw-blog-content"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          dangerouslySetInnerHTML={{ __html: safePublicContent(post.content) }}
         />
         <section className="cw-blog-article-cta">
           <div>
             <h2>Ready to explore your options?</h2>
             <p>Start with a clear view of your education-loan eligibility.</p>
           </div>
-          <a className="cw-blog-cta" href="/eligibility.html">
+          <Link className="cw-blog-cta" href="/eligibility">
             Check eligibility
-          </a>
+          </Link>
         </section>
         {related.length ? (
           <section className="cw-blog-related">

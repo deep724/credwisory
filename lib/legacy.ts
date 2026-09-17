@@ -17,6 +17,18 @@ const pagesWithExtractedStyles = new Set([
   "scholarship-eligibility.html", "scholarships.html", "sop-guidance.html", "talk-to-an-expert.html"
 ]);
 
+function cleanLegacyHref(value: string) {
+  const [pathname, suffix = ""] = value.split(/(?=[?#])/);
+  const filename = pathname.replace(/^\//, "");
+  if (!pageNames.has(filename)) return value;
+  return `${filename === "index.html" ? "/" : `/${filename.replace(/\.html$/, "")}`}${suffix}`;
+}
+
+function cleanLegacyScriptReferences(source: string) {
+  const names = [...pageNames].sort((a, b) => b.length - a.length).map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+  return source.replace(new RegExp(`(["'=])/?(${names})(?=([?#"']|$))`, "g"), (_match, prefix, filename) => `${prefix}${cleanLegacyHref(filename)}`);
+}
+
 type Element = DefaultTreeAdapterTypes.Element;
 type Node = DefaultTreeAdapterTypes.Node;
 
@@ -60,7 +72,7 @@ function collectExecutableScripts(node: Node, scripts: string[]) {
     if (attribute(node, "type")?.toLowerCase() !== "text/plain") {
       const source = serializeOuter(node);
       const src = attribute(node, "src");
-      scripts.push(src ? source.replace(/\bsrc=(['"])[^'"]*\1/i, (_match, quote) => `src=${quote}${publicAssetPath(src)}${quote}`) : source);
+    scripts.push(cleanLegacyScriptReferences(src ? source.replace(/\bsrc=(['"])[^'"]*\1/i, (_match, quote) => `src=${quote}${publicAssetPath(src)}${quote}`) : source));
     }
     return;
   }
@@ -99,6 +111,17 @@ function removeLegacyHeaderPlaceholder(node: Node, isBody = false) {
   });
 }
 
+function cleanLegacyNavigationUrls(node: Node) {
+  if (!isElement(node)) {
+    if ("childNodes" in node) node.childNodes.forEach(cleanLegacyNavigationUrls);
+    return;
+  }
+  node.attrs.forEach((item) => {
+    if (item.name === "href" || item.name === "action") item.value = cleanLegacyHref(item.value);
+  });
+  if ("childNodes" in node) node.childNodes.forEach(cleanLegacyNavigationUrls);
+}
+
 export async function loadLegacyPage(filename: string): Promise<LegacyPage | null> {
   if (!pageNames.has(filename)) return null;
   const source = await readFile(path.join(legacyRoot, filename), "utf8");
@@ -123,6 +146,7 @@ export async function loadLegacyPage(filename: string): Promise<LegacyPage | nul
   // Inert calculator sources stay in the document until LegacyRuntime activates them.
   removeUnsafeBodyNodes(body);
   removeLegacyHeaderPlaceholder(body, true);
+  cleanLegacyNavigationUrls(body);
   const bodyMarkup = body.childNodes
     .filter((node) => !isElement(node, "footer"))
     .map((node) => serializeOuter(node))

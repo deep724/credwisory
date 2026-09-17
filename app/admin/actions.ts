@@ -5,6 +5,8 @@ import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdmin, requireRole } from "@/lib/admin-auth";
+import { isValidBlogImageValue, validBlogImageMessage } from "@/lib/blog-images";
+import { isValidLenderLogo, lenderLogoMessage } from "@/lib/lender-images";
 import { connectToDatabase } from "@/lib/mongodb";
 import {
   AdminUser,
@@ -195,18 +197,18 @@ export async function addLeadNote(formData: FormData) {
 }
 const lenderInput = z.object({
   id: z.union([id, z.literal("")]).optional(),
-  name: z.string().trim().min(2).max(120),
+  name: z.string().trim().min(2, "Enter a lender name of at least 2 characters.").max(120),
   slug: z
     .string()
     .trim()
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and hyphens only."),
   lenderType: z.enum(["BANK", "NBFC", "INTERNATIONAL"]),
-  displayOrder: z.coerce.number().int().min(0).max(9999),
+  displayOrder: z.coerce.number().int("Display order must be a whole number.").min(0, "Display order cannot be negative.").max(9999),
   published: z.enum(["true", "false"]),
-  securedLoan: z.string().trim().max(120),
-  unsecuredLoan: z.string().trim().max(120),
-  securedRate: z.string().trim().max(120),
-  unsecuredRate: z.string().trim().max(120),
+  securedLoan: z.string().trim().min(1, "Enter secured loan details or Not available.").max(120),
+  unsecuredLoan: z.string().trim().min(1, "Enter unsecured loan details or Not available.").max(120),
+  securedRate: z.string().trim().min(1, "Enter a secured rate or Not available.").max(120),
+  unsecuredRate: z.string().trim().min(1, "Enter an unsecured rate or Not available.").max(120),
   moratorium: z.string().trim().max(160),
   tenure: z.string().trim().max(120),
   foreclosure: z.string().trim().max(120),
@@ -214,16 +216,19 @@ const lenderInput = z.object({
   description: z.string().trim().max(500).optional(),
   collateralAvailable: z.enum(["true", "false"]),
   nonCollateralAvailable: z.enum(["true", "false"]),
-  logoUrl: z.string().trim().url().or(z.literal("")),
+  logoUrl: z.string().trim().max(1000).optional(),
   applicationUrl: z.string().trim().url().or(z.literal("")),
 });
 export async function saveLender(formData: FormData) {
   const admin = await requireAdmin();
-  const value = lenderInput.safeParse(Object.fromEntries(formData));
+  const raw = Object.fromEntries(formData);
+  if (raw.intent === "save-draft") raw.published = "false";
+  if (raw.intent === "publish") raw.published = "true";
+  const value = lenderInput.safeParse(raw);
   if (!value.success)
-    return {
-      error: "Please correct the highlighted lender fields and try again.",
-    };
+    return { error: "Please complete the highlighted lender fields before publishing.", fields: Object.fromEntries(Object.entries(value.error.flatten().fieldErrors).map(([field, messages]) => [field, messages?.[0] || "Please correct this field."])) };
+  if (!isValidLenderLogo(value.data.logoUrl || ""))
+    return { error: "Please complete the highlighted lender fields before publishing.", fields: { logoUrl: lenderLogoMessage } };
   await connectToDatabase();
   const {
     id: lenderId,
@@ -238,6 +243,9 @@ export async function saveLender(formData: FormData) {
     processingFee,
     ...data
   } = value.data;
+  const duplicate = await Lender.exists({ slug: data.slug, ...(lenderId ? { _id: { $ne: lenderId } } : {}) });
+  if (duplicate)
+    return { error: "Please complete the highlighted lender fields before publishing.", fields: { slug: "That lender slug is already in use." } };
   const document = {
     ...data,
     published: published === "true",
@@ -265,7 +273,7 @@ export async function saveLender(formData: FormData) {
       : await Lender.create(document);
   } catch (error) {
     if (error && typeof error === "object" && "code" in error && error.code === 11000)
-      return { error: "That lender URL slug is already in use." };
+      return { error: "Please complete the highlighted lender fields before publishing.", fields: { slug: "That lender slug is already in use." } };
     return { error: "The lender could not be saved. Please try again." };
   }
   if (!lender) return { error: "The lender could not be found." };
@@ -547,15 +555,15 @@ export async function unpublishBlog(formData: FormData) {
 }
 const blogInput = z.object({
   id: z.union([id, z.literal("")]).optional(),
-  title: z.string().trim().min(5).max(180),
+  title: z.string().trim().min(5, "Enter a title of at least 5 characters.").max(180, "Keep the title under 180 characters."),
   slug: z
     .string()
     .trim()
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
-    .max(180),
-  excerpt: z.string().trim().max(400).optional(),
-  content: z.string().trim().min(20).max(100_000),
-  category: z.string().trim().min(2).max(80),
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and hyphens only.")
+    .max(180, "Keep the slug under 180 characters."),
+  excerpt: z.string().trim().min(10, "Write an excerpt of at least 10 characters.").max(400, "Keep the excerpt under 400 characters."),
+  content: z.string().trim().min(20, "Write blog content of at least 20 characters.").max(100_000, "Blog content is too long."),
+  category: z.string().trim().max(80).optional(),
   tags: z.string().max(500).optional(),
   coverImageUrl: z.string().trim().max(1000).optional(),
   seoTitle: z.string().trim().max(180).optional(),
@@ -597,8 +605,14 @@ export async function saveBlog(formData: FormData) {
   if (raw.intent === "save-draft") raw.status = "DRAFT";
   if (raw.intent === "publish") raw.status = "PUBLISHED";
   const input = blogInput.safeParse(raw);
-  if (!input.success)
-    return { error: "Please complete the required blog fields." };
+  if (!input.success) {
+    const fields = Object.fromEntries(
+      Object.entries(input.error.flatten().fieldErrors).map(([field, messages]) => [field, messages?.[0] || "Please correct this field."]),
+    );
+    return { error: "Please complete the highlighted fields before publishing.", fields };
+  }
+  if (!isValidBlogImageValue(input.data.coverImageUrl || ""))
+    return { error: "Please complete the highlighted fields before publishing.", fields: { coverImageUrl: validBlogImageMessage() } };
   await connectToDatabase();
   const { id: postId, tags, featured, publishDate, ...data } = input.data;
   const duplicate = await BlogPost.exists({
@@ -606,7 +620,7 @@ export async function saveBlog(formData: FormData) {
     ...(postId ? { _id: { $ne: postId } } : {}),
   });
   if (duplicate)
-    return { error: "That slug is already in use. Choose a unique URL." };
+    return { error: "Please complete the highlighted fields before publishing.", fields: { slug: "That slug is already in use. Choose a unique URL." } };
   const publishedAt =
     data.status === "PUBLISHED"
       ? publishDate
@@ -614,7 +628,7 @@ export async function saveBlog(formData: FormData) {
         : new Date()
       : undefined;
   if (publishedAt && Number.isNaN(publishedAt.getTime()))
-    return { error: "Choose a valid publish date." };
+    return { error: "Please complete the highlighted fields before publishing.", fields: { publishDate: "Choose a valid publish date." } };
   const document = {
     ...data,
     content: safeBlogContent(data.content),
@@ -643,7 +657,7 @@ export async function saveBlog(formData: FormData) {
         });
   } catch (error) {
     if (error && typeof error === "object" && "code" in error && error.code === 11000)
-      return { error: "That slug is already in use. Choose a unique URL." };
+      return { error: "Please complete the highlighted fields before publishing.", fields: { slug: "That slug is already in use. Choose a unique URL." } };
     return { error: "The blog post could not be saved. Please try again." };
   }
   if (!post) return { error: "This blog post no longer exists." };

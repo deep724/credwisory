@@ -40,4 +40,18 @@ export async function requireRole(...allowed: string[]) {
   if (!role?.key || !allowed.includes(role.key)) redirect("/admin");
   return admin;
 }
-export const adminCookie = { name: cookieName, options: { httpOnly: true, sameSite: "lax" as const, secure: process.env.NODE_ENV === "production" || process.env.ADMIN_COOKIE_SECURE === "true", path: "/", maxAge: 60 * 60 * 8 } };
+export const adminCookie = { name: cookieName, options: { httpOnly: true, sameSite: "lax" as const, secure: false, path: "/", maxAge: 60 * 60 * 8 } };
+
+/**
+ * Cookies must only be marked Secure when the browser is actually using HTTPS.
+ * `next start` runs in production mode locally over HTTP, where a Secure cookie
+ * is silently discarded and makes an otherwise successful login look broken.
+ */
+export function adminCookieOptions(request: Request) {
+  const forwardedProtocol = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  const isHttps = forwardedProtocol === "https" || new URL(request.url).protocol === "https:";
+  return {
+    ...adminCookie.options,
+    secure: process.env.ADMIN_COOKIE_SECURE === "true" || isHttps,
+  };
+}

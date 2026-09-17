@@ -1,6 +1,6 @@
 /* Preserve every existing lender CTA while sending applications to one full page. */
 (() => {
-  const destination = "apply-with-us.html";
+  const destination = "/apply";
   document.addEventListener("click", (event) => {
     const trigger = event.target.closest("a.lc-apply, a.table-apply[href*='lender-enquiry'], [data-apply]");
     if (!trigger) return;

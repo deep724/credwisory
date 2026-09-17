@@ -13,7 +13,7 @@ export async function GET(request: Request) {
     ...(slug ? { slug } : {}),
   };
   const posts = await BlogPost.find(filter)
-    .sort({ featured: -1, publishedAt: -1 })
+    .sort({ publishedAt: -1, _id: -1 })
     .select(
       "title slug excerpt coverImageUrl category tags author publishedAt createdAt featured",
     )

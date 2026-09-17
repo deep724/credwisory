@@ -1,10 +1,12 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { connectToDatabase } from "@/lib/mongodb";
 import { BlogPost } from "@/lib/models";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { alternates: { canonical: "/blogs" } };
 
 type Search = { q?: string; category?: string; page?: string };
 const escape = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -44,7 +46,7 @@ export default async function BlogsPage({
     ];
   const [posts, total, categoryRows] = await Promise.all([
     BlogPost.find(filter)
-      .sort({ featured: -1, publishedAt: -1 })
+      .sort({ publishedAt: -1, _id: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .lean(),
@@ -117,6 +119,7 @@ export default async function BlogsPage({
               <span className="cw-blog-meta">
                 Featured · {featured.category || "Guidance"}
               </span>
+              {featured.tags?.length ? <p className="cw-blog-tags">{featured.tags.join(" · ")}</p> : null}
               <h2>{featured.title}</h2>
               <p>{featured.excerpt}</p>
               <span className="cw-blog-meta">
@@ -145,6 +148,7 @@ export default async function BlogsPage({
                 <span className="cw-blog-meta">
                   {post.category || "Guidance"}
                 </span>
+                {post.tags?.length ? <p className="cw-blog-tags">{post.tags.join(" · ")}</p> : null}
                 <h2>{post.title}</h2>
                 <p>{post.excerpt}</p>
                 <span className="cw-blog-meta">

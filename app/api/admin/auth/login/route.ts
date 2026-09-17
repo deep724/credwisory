@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { connectToDatabase, logDatabaseError } from "@/lib/mongodb";
 import { AdminUser, AuditLog } from "@/lib/models";
-import { adminCookie, createAdminToken } from "@/lib/admin-auth";
+import { adminCookie, adminCookieOptions, createAdminToken } from "@/lib/admin-auth";
 import { allowRequest } from "@/lib/api";
 
 const schema = z.object({ email: z.string().email(), password: z.string().min(12).max(128) });
@@ -31,5 +31,5 @@ export async function POST(request: Request) {
   const token = await createAdminToken({ id: user.id, roleKey: role.key });
   await AdminUser.updateOne({ _id: user._id }, { $set: { failedLogins: 0, lastLoginAt: new Date(), lockedUntil: null } });
   await AuditLog.create({ actorId: user._id, action: "admin.login", entityType: "AdminUser", entityId: String(user._id) });
-  const response = NextResponse.json({ ok: true, passwordChangeRequired: Boolean(user.mustChangePassword) }); response.cookies.set(adminCookie.name, token, adminCookie.options); return response;
+  const response = NextResponse.json({ ok: true, passwordChangeRequired: Boolean(user.mustChangePassword) }); response.cookies.set(adminCookie.name, token, adminCookieOptions(request)); return response;
 }

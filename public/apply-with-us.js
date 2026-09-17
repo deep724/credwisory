@@ -2,9 +2,11 @@
   const root = document.getElementById("applyWithUsContent");
   if (!root) return;
   const slug = new URLSearchParams(location.search).get("lender") || "";
+  let selectedLender = null;
+  try { selectedLender = JSON.parse(root.dataset.lender || "null"); } catch { selectedLender = null; }
   const safe = (value) => String(value ?? "").replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[character]));
   const readable = (value) => String(value || "Lender").replace(/[-_]/g, " ").replace(/\b\w/g, (character) => character.toUpperCase());
-  let lenderName = slug ? readable(slug) : "Selected lender";
+  let lenderName = selectedLender?.name || (slug ? readable(slug) : "Selected lender");
   let submitting = false;
   const input = (name, label, options = {}) => {
     const { type = "text", required = false, placeholder = "", wide = false, select = [], currency = false, min = "", inputMode = "" } = options;
@@ -23,6 +25,20 @@
     next.addEventListener("click", () => { if (validate(step)) showStep(step + 1); }); back.addEventListener("click", () => showStep(step - 1));
     form.addEventListener("submit", async (event) => { event.preventDefault(); if (submitting || !validate(3)) return; submitting = true; submit.disabled = true; submit.textContent = "Submitting…"; message.hidden = true; const data = Object.fromEntries(new FormData(form).entries()); const payload = { ...data, loanPurpose: "education_loan", loanType: "Education Loan", lender: slug, lenderName, applicationSource: "Education loan lender application" }; try { const response = await fetch("/api/leads", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind: "LENDER_ENQUIRY", name: String(data.fullName || "").trim(), email: String(data.email || "").trim(), mobile: String(data.mobile || "").replace(/\D/g, ""), sourcePage: location.pathname, payload }) }); const result = await response.json().catch(() => ({})); if (!response.ok || !result.ok) throw new Error(); form.innerHTML = '<section class="cw-apply-success" role="status" aria-live="polite"><i aria-hidden="true">✓</i><h2>Education-loan enquiry received</h2><p>Thank you — our team will help you explore suitable education-loan options.</p><a class="cw-apply-success__lenders" href="/lenders">Back to lenders</a></section>'; } catch { message.textContent = "We could not submit your education-loan enquiry right now. Please check your connection and try again."; message.hidden = false; submit.disabled = false; submit.textContent = "Submit application"; submitting = false; } }); showStep(1);
   }
-  function updateReview(form) { const data = new FormData(form), review = form.querySelector(".cw-apply-review"); const fields = [["Lender", lenderName], ["Loan type", "Education loan"], ["Name", data.get("fullName")], ["Email", data.get("email")], ["Mobile", data.get("mobile")], ["Study destination", data.get("studyDestination")], ["University / institution", data.get("institution")], ["Course", data.get("course")], ["Intake", data.get("intake")], ["Required loan amount", data.get("loanAmount")], ["Collateral available", data.get("collateralAvailable")]]; review.innerHTML = fields.map(([label, value]) => `<div><span>${safe(label)}</span><b>${safe(value || "Not provided")}</b></div>`).join(""); }
-  render(); mount(); if (slug) fetch("/api/lenders", { headers: { accept: "application/json" } }).then((response) => response.ok ? response.json() : []).then((items) => { const lender = Array.isArray(items) && items.find((item) => String(item.slug || item._id) === slug); if (!lender?.name) return; lenderName = lender.name; const badge = document.getElementById("selectedLender"); if (badge) badge.textContent = lenderName; }).catch(() => {});
+  function updateReview(form) { const data = new FormData(form), review = form.querySelector(".cw-apply-review"); const fields = [["Selected lender", lenderName], ["Loan type", "Education loan"], ["Name", data.get("fullName")], ["Email", data.get("email")], ["Mobile", data.get("mobile")], ["Study destination", data.get("studyDestination")], ["University / institution", data.get("institution")], ["Course", data.get("course")], ["Intake", data.get("intake")], ["Required loan amount", data.get("loanAmount")], ["Collateral available", data.get("collateralAvailable")]]; review.innerHTML = fields.map(([label, value]) => `<div><span>${safe(label)}</span><b>${safe(value || "Not provided")}</b></div>`).join(""); }
+  const decorateLenderIdentity = () => {
+    const header = root.querySelector(".cw-apply-head > div");
+    const badge = document.getElementById("selectedLender");
+    if (!header || !badge || header.querySelector(".cw-apply-lender-identity")) return;
+    badge.textContent = `Applying with ${lenderName}`;
+    const sentence = document.createElement("p");
+    sentence.className = "cw-apply-selected-copy";
+    sentence.textContent = `You are applying for an education loan with ${lenderName}.`;
+    const identity = document.createElement("span");
+    identity.className = "cw-apply-lender-identity";
+    if (selectedLender?.logoUrl) { const logo = document.createElement("img"); logo.src = selectedLender.logoUrl; logo.alt = `${lenderName} logo`; identity.append(logo); }
+    const name = document.createElement("b"); name.textContent = lenderName; identity.append(name);
+    header.querySelector("h1")?.after(sentence, identity);
+  };
+  render(); decorateLenderIdentity(); mount(); if (!selectedLender && slug) fetch("/api/lenders", { headers: { accept: "application/json" } }).then((response) => response.ok ? response.json() : []).then((items) => { const lender = Array.isArray(items) && items.find((item) => String(item.slug || item._id) === slug); if (!lender?.name) return; lenderName = lender.name; selectedLender = lender; render(); decorateLenderIdentity(); mount(); }).catch(() => {});
 })();

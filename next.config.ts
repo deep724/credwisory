@@ -6,6 +6,20 @@ const nextConfig: NextConfig = {
   // Allow the private-network development origin without relaxing production
   // CSP or exposing any development-only capability in production.
   allowedDevOrigins: ["192.168.137.1"],
+  async redirects() {
+    const publicPages = [
+      "eligibility", "lender-enquiry", "apply-with-us", "compare-all-lenders",
+      "bank-lenders", "nbfc-lenders", "international-lenders", "scholarships",
+      "scholarship-eligibility", "sop-guidance", "application-guidance", "blogs",
+      "contact", "faq", "how-education-loans-work", "loan-with-collateral",
+      "loan-without-collateral", "refer-a-friend", "talk-to-an-expert",
+      "emi-calculator", "loan-takeover-calculator", "interest-rate-comparison",
+    ];
+    return [
+      { source: "/index.html", destination: "/", permanent: true },
+      ...publicPages.map((page) => ({ source: `/${page}.html`, destination: `/${page}`, permanent: true })),
+    ];
+  },
   async headers() {
     const production = process.env.NODE_ENV === "production";
     // React's development runtime uses eval for source-mapped component code.
