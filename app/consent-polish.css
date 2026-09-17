@@ -1,0 +1,2 @@
+/* Shared consent-control geometry for the preserved public forms. */
+body .consent,body .field.full.consent{display:flex;align-items:flex-start!important;gap:12px!important;line-height:1.5;cursor:pointer}body .consent input[type="checkbox"],body .field.full.consent input[type="checkbox"]{box-sizing:border-box!important;width:18px!important;height:18px!important;min-width:18px!important;min-height:18px!important;flex:0 0 18px!important;margin:2px 0 0!important;padding:0!important}body .consent span,body .field.full.consent span{min-width:0}

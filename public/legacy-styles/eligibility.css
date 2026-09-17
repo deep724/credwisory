@@ -524,21 +524,6 @@
         display: block;
         margin-top: 9px;
       }
-      .checklist {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-      }
-      .check {
-        color: var(--m);
-        font-size: 12px;
-      }
-      .check:before {
-        content: "✓";
-        color: var(--t);
-        font-weight: 900;
-        margin-right: 6px;
-      }
       .notice {
         color: #765d19;
         background: #fff7dc;
@@ -610,7 +595,6 @@
         }
         .fields,
         .rg,
-        .checklist,
         .matches {
           grid-template-columns: 1fr;
         }

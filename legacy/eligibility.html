@@ -4,12 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>Check eligibility | Credwisory</title>
-    <script defer src="site-header.js"></script></head>
+    <script defer src="site-header.js"></script>
+    <link rel="stylesheet" href="eligibility-flow-polish.css" />
+  </head>
   <body>
     <div class="top">
       <div>
-        <span><b>✦</b> Trusted guidance for your education journey</span
-        >
+        <span><b>✦</b> Trusted guidance for your education journey</span>
       </div>
     </div>
     <main class="page">
@@ -214,7 +215,7 @@
               <div class="err" id="cerr"></div>
             </section>
             <div class="actions">
-              <div>
+              <div class="action-group">
                 <button type="button" class="btn secondary hidden" id="prev">
                   ← Previous
                 </button>
@@ -391,7 +392,7 @@
           document.querySelector(".head").classList.add("hidden");
           $("card").insertAdjacentHTML(
             "beforeend",
-            `<section class="results"><span class="badge">Enquiry prepared</span><h2>Your enquiry is ready</h2><p class="intro">Thanks, ${esc(first)}. Here’s a clear next view of your education-loan enquiry.</p><div class="amount"><small>Approximate loan requirement</small><strong>${money($("loan").value)}</strong><em>Based on the amount you shared</em></div><div class="status">${esc(status)}</div><div class="label">Illustrative matches</div><div class="matches"><div class="match"><b>Study Finance Path</b><span>International education route</span><i>Illustrative only</i></div><div class="match"><b>FutureLearn Lending</b><span>Flexible co-applicant review</span><i>Illustrative only</i></div><div class="match"><b>Global Scholar Finance</b><span>Guided documentation path</span><i>Illustrative only</i></div></div><div class="label">Document checklist</div><div class="checklist"><span class="check">Passport</span><span class="check">Academic transcripts</span><span class="check">Admission / offer letter</span><span class="check">Tuition fee details</span><span class="check">Income documents</span></div><div class="notice">This is an eligibility enquiry, not a loan approval or rate guarantee.</div><div class="ra"><button class="btn primary" id="new">Start a new enquiry</button><a class="btn secondary" href="index.html">Explore education loans</a></div></section>`,
+            `<section class="results"><span class="badge">Enquiry prepared</span><h2>Your enquiry is ready</h2><p class="intro">Thanks, ${esc(first)}. Here’s a clear next view of your education-loan enquiry.</p><div class="amount"><small>Approximate loan requirement</small><strong>${money($("loan").value)}</strong><em>Based on the amount you shared</em></div><div class="status">${esc(status)}</div><div class="label">Illustrative matches</div><div class="matches"><div class="match"><b>Study Finance Path</b><span>International education route</span><i>Illustrative only</i></div><div class="match"><b>FutureLearn Lending</b><span>Flexible co-applicant review</span><i>Illustrative only</i></div><div class="match"><b>Global Scholar Finance</b><span>Guided documentation path</span><i>Illustrative only</i></div></div><section class="next-steps" aria-labelledby="next-steps-title"><h3 id="next-steps-title">What happens next?</h3><ol><li><b aria-hidden="true">✓</b><span>Our team reviews your enquiry and study plans.</span></li><li><b aria-hidden="true">◎</b><span>An education-loan expert will connect with you to understand your options.</span></li><li><b aria-hidden="true">↔</b><span>You can compare suitable lender routes before proceeding.</span></li></ol><p>You do not need to prepare documents yet. Your expert will guide you when they are required.</p></section><div class="notice">This is an eligibility enquiry, not a loan approval or rate guarantee.</div><div class="ra"><button class="btn primary" id="new">Start a new enquiry</button><a class="btn secondary" href="index.html">Explore education loans</a></div></section>`,
           );
           $("new").onclick = reset;
         }
