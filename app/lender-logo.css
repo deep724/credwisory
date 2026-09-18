@@ -1,0 +1,32 @@
+/* Scoped specificity shields brand artwork from legacy table and admin image rules. */
+body .cw-lender-logo.cw-lender-logo {
+  --logo-size:44px; --logo-padding:8px;
+  display:grid!important; place-items:center!important; grid-template:1fr / 1fr!important;
+  box-sizing:border-box!important; width:var(--logo-size)!important; height:var(--logo-size)!important;
+  min-width:var(--logo-size)!important; min-height:var(--logo-size)!important;
+  max-width:var(--logo-size)!important; max-height:var(--logo-size)!important;
+  flex:0 0 var(--logo-size)!important; margin:0!important; padding:var(--logo-padding)!important;
+  position:static!important; transform:none!important; translate:none!important; line-height:0!important;
+  border:1px solid #e2e8f0!important; border-radius:10px!important; background:#fff!important;
+  box-shadow:none!important; overflow:hidden!important; vertical-align:middle; color:#536477!important;
+}
+body .cw-lender-logo.cw-lender-logo--card{--logo-size:56px;--logo-padding:10px}
+body .cw-lender-logo.cw-lender-logo--header{--logo-size:72px;--logo-padding:12px}
+body .cw-lender-logo.cw-lender-logo::before,body .cw-lender-logo.cw-lender-logo::after{content:none!important}
+body .cw-lender-logo.cw-lender-logo > img.cw-lender-logo__image {
+  display:block!important; grid-area:1 / 1!important; box-sizing:border-box!important;
+  width:100%!important; height:100%!important; max-width:100%!important; max-height:100%!important;
+  min-width:0!important; min-height:0!important; object-fit:contain!important; object-position:center!important;
+  margin:0!important; padding:0!important; border:0!important; border-radius:0!important;
+  position:static!important; inset:auto!important; transform:none!important; translate:none!important;
+  background:transparent!important; box-shadow:none!important; filter:none!important; opacity:0!important;
+}
+body .cw-lender-logo.cw-lender-logo > img.is-loaded{opacity:1!important}
+body .cw-lender-logo.cw-lender-logo > .cw-lender-logo__fallback {
+  grid-area:1 / 1; display:grid!important; place-items:center; margin:0!important; padding:0!important;
+  color:#536477!important; background:transparent!important; font:700 11px/1 system-ui,sans-serif!important;
+  white-space:nowrap; letter-spacing:0; transform:none!important;
+}
+body [data-lender-logo-slot]{display:inline-flex;align-items:center;flex-shrink:0;line-height:0}
+.cw-home-option-logo:has(.cw-lender-logo){width:56px!important;height:56px!important;flex-basis:56px!important;padding:0!important;border:0!important;background:transparent!important}
+.cw-apply-lender-summary__identity>div{min-width:0}

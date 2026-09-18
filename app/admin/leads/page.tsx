@@ -86,10 +86,11 @@ export default async function Leads({
       .skip((page - 1) * limit)
       .limit(limit)
       .select(
-        "name email phone type status sourcePage studentProfileId assignedToId createdAt",
+        "name email phone type status sourcePage studentProfileId assignedToId lenderId createdAt",
       )
       .populate("studentProfileId", "enquiryCount")
       .populate("assignedToId", "name")
+      .populate("lenderId", "name")
       .lean(),
     Lead.countDocuments(filter),
     Lender.find({ archivedAt: null })
@@ -119,8 +120,8 @@ export default async function Leads({
         {total} enquiry record{total === 1 ? "" : "s"} across public forms and
         referrals.
       </p>
-      <form className="cw-admin-toolbar">
-        <label>
+      <form className="cw-admin-toolbar cw-leads-toolbar">
+        <label className="cw-leads-filter">
           Search
           <input
             name="q"
@@ -128,27 +129,27 @@ export default async function Leads({
             placeholder="Name, email or phone"
           />
         </label>
-        <AdminFilterSelect
+        <label className="cw-leads-filter">Enquiry type<AdminFilterSelect
           name="type"
           value={p.type}
           placeholder="All enquiry types"
           ariaLabel="Filter by enquiry type"
           options={types.map((value) => ({ value, label: label(value) }))}
-        />
-        <AdminFilterSelect
+        /></label>
+        <label className="cw-leads-filter">Status<AdminFilterSelect
           name="status"
           value={p.status}
           placeholder="All statuses"
           ariaLabel="Filter by status"
           options={statuses.map((value) => ({ value, label: label(value) }))}
-        />
-        <input
+        /></label>
+        <label className="cw-leads-filter cw-leads-source-filter">Source<input
           name="sourcePage"
           defaultValue={p.sourcePage}
           placeholder="Source page"
           aria-label="Filter source page"
-        />
-        <AdminFilterSelect
+        /></label>
+        <label className="cw-leads-filter">Lender<AdminFilterSelect
           name="lender"
           value={p.lender}
           placeholder="All lenders"
@@ -157,8 +158,8 @@ export default async function Leads({
             value: String(lender._id),
             label: lender.name,
           }))}
-        />
-        <AdminFilterSelect
+        /></label>
+        <label className="cw-leads-filter">Assigned admin<AdminFilterSelect
           name="assigned"
           value={p.assigned}
           placeholder="All assigned admins"
@@ -167,31 +168,31 @@ export default async function Leads({
             value: String(user._id),
             label: user.name,
           }))}
-        />
-        <AdminFilterSelect
+        /></label>
+        <label className="cw-leads-filter">Student filter<AdminFilterSelect
           name="multiple"
           value={p.multiple}
           placeholder="All students"
           ariaLabel="Filter by student grouping"
           options={[{ value: "true", label: "Multiple enquiries" }]}
-        />
-        <button className="cw-admin-primary">Apply filters</button>
+        /></label>
+        <div className="cw-leads-filter-actions"><button className="cw-admin-primary">Apply filters</button>
         <Link className="cw-admin-reset" href="/admin/leads">
           Reset filters
-        </Link>
+        </Link></div>
       </form>
       <section className="cw-admin-panel">
         <div className="cw-admin-table-wrap">
-          <table>
+          <table className="cw-leads-table">
             <thead>
               <tr>
                 <th>Student</th>
+                <th>Contact</th>
                 <th>Enquiry type</th>
-                <th>Source page</th>
-                <th>Assigned</th>
+                <th>Assigned lender</th>
                 <th>Current status</th>
                 <th>Created</th>
-                <th><span className="sr-only">Actions</span></th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -204,14 +205,11 @@ export default async function Leads({
                   const assigned = lead.assignedToId as unknown as {
                     name?: string;
                   } | null;
+                  const lender = lead.lenderId as unknown as { name?: string } | null;
                   return (
                     <tr key={String(lead._id)}>
-                      <td>
+                      <td data-label="Student" className="cw-lead-student">
                         <strong>{lead.name}</strong>
-                        <br />
-                        <small>
-                          {lead.email || lead.phone || "No contact detail"}
-                        </small>
                         <br />
                         {profile?._id ? (
                           <Link
@@ -228,14 +226,14 @@ export default async function Leads({
                           <small>Profile pending backfill</small>
                         )}
                       </td>
-                      <td>
+                      <td data-label="Contact" className="cw-lead-contact"><small>{lead.phone || "No phone"}</small><small title={lead.email || "No email"}>{lead.email || "No email"}</small></td>
+                      <td data-label="Enquiry type">
                         <span className="cw-admin-type">
                           {label(lead.type)}
                         </span>
                       </td>
-                      <td>{sourceLabel(lead.sourcePage)}</td>
-                      <td>{assigned?.name || "Unassigned"}</td>
-                      <td>
+                      <td data-label="Assigned lender" className="cw-lead-lender" title={lender?.name || "Unassigned"}>{lender?.name || "Unassigned"}</td>
+                      <td data-label="Current status">
                         <LeadStatusControl
                           id={String(lead._id)}
                           name={lead.name}
@@ -243,8 +241,8 @@ export default async function Leads({
                           statuses={statuses}
                         />
                       </td>
-                      <td>{lead.createdAt.toLocaleDateString()}</td>
-                      <td className="cw-admin-row-actions">{lead.status === "CLOSED" && <LeadDeleteAction id={String(lead._id)} name={lead.name} identifier={lead.email || lead.phone || "No contact detail"} type={label(lead.type)} />}</td>
+                      <td data-label="Created" className="cw-lead-created">{lead.createdAt.toLocaleDateString()}</td>
+                      <td data-label="Actions" className="cw-admin-row-actions cw-lead-actions"><Link className="cw-lead-open" href={`/admin/leads/${lead._id}`}>Open lead</Link>{lead.status === "CLOSED" && <LeadDeleteAction id={String(lead._id)} name={lead.name} identifier={lead.email || lead.phone || "No contact detail"} type={label(lead.type)} />}</td>
                     </tr>
                   );
                 })

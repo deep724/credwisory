@@ -13,6 +13,7 @@ const sources = {
 async function main() {
   const root = path.join(__dirname, '../public/lender-logos');
   await fs.mkdir(path.join(root, 'normalized'), { recursive: true });
+  await fs.mkdir(path.join(root, 'display'), { recursive: true });
   const tiles = [];
   for (const [id, source] of Object.entries(sources)) {
     const input = await sharp(path.join(root, source), { density: 300 }).flatten({ background: '#fff' }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -26,6 +27,8 @@ async function main() {
     // Retain a small safety margin around antialiased edges; never crop the mark.
     left=Math.max(0,left-2);top=Math.max(0,top-2);right=Math.min(width-1,right+2);bottom=Math.min(height-1,bottom+2);
     const trimmed=await sharp(input.data,{raw:input.info}).extract({left,top,width:right-left+1,height:bottom-top+1}).png().toBuffer();
+    // Tight artwork for the shared component: container padding is applied only once.
+    await sharp(trimmed).resize({ width: 1200, height: 800, fit: 'inside', withoutEnlargement: true }).png().toFile(path.join(root, 'display', id + '.png'));
     const artwork=await sharp(trimmed).resize(328,312,{fit:'inside'}).png().toBuffer();
     const meta=await sharp(artwork).metadata();
     const output=await sharp({create:{width:400,height:400,channels:4,background:'#fff'}}).composite([{input:artwork,left:Math.round((400-meta.width)/2),top:Math.round((400-meta.height)/2)}]).png().toBuffer();

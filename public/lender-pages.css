@@ -95,7 +95,7 @@ body { color: var(--lc-ink); background: #fff; }
 
 .lc-scroll {
   width: 100%;
-  overflow: visible;
+  overflow-x: auto;
   border: 1px solid var(--lc-line);
   border-radius: 14px;
   background: var(--lc-surface);
@@ -104,14 +104,15 @@ body { color: var(--lc-ink); background: #fff; }
 
 .lc-scroll table {
   width: 100%;
+  min-width: 1160px;
   border-collapse: collapse;
   table-layout: fixed;
 }
 
 .lc-col-lender { width: 18%; }
-.lc-col-loan { width: 13%; }
-.lc-col-rates { width: 16%; }
-.lc-col-terms { width: 20%; }
+.lc-col-loan { width: 12%; }
+.lc-col-rates { width: 15%; }
+.lc-col-terms { width: 22%; }
 .lc-col-compare { width: 8%; }
 .lc-col-action { width: 12%; }
 
@@ -169,8 +170,8 @@ body { color: var(--lc-ink); background: #fff; }
 .lc-category { display: block; margin-top: 3px; color: var(--lc-muted); font-size: .7rem; font-weight: 700; }
 
 .lc-value { font-weight: 700; }
-.lc-rate-list,
-.lc-terms { display: grid; gap: 5px; margin: 0; }
+.lc-rate-list { display: grid; gap: 5px; margin: 0; }
+.lc-terms { display: grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px 12px; margin:0; }
 .lc-rate-list span,
 .lc-terms > div {
   display: flex;
@@ -182,6 +183,8 @@ body { color: var(--lc-ink); background: #fff; }
 .lc-terms dt { color: var(--lc-muted); font-size: .67rem; font-weight: 700; }
 .lc-rate-list b,
 .lc-terms dd { margin: 0; color: var(--lc-ink); font-size: .76rem; font-weight: 700; text-align: right; }
+.lc-terms > div { display:block; min-width:0; }
+.lc-terms dd { margin-top:3px; overflow-wrap:anywhere; text-align:left; }
 
 .lc-choice { display: inline-flex; align-items: center; justify-content: center; }
 .lc-choice input { width: 18px; height: 18px; margin: 0; accent-color: var(--lc-teal); cursor: pointer; }
@@ -214,6 +217,7 @@ body { color: var(--lc-ink); background: #fff; }
   .lc-scroll tbody,
   .lc-scroll tr,
   .lc-scroll td { display: block; width: 100%; }
+  .lc-scroll table { min-width: 0; }
   .lc-scroll table { border-collapse: separate; border-spacing: 0 14px; }
   .lc-scroll thead { display: none; }
   .lc-scroll tbody tr {
@@ -280,5 +284,19 @@ body { color: var(--lc-ink); background: #fff; }
 @media (prefers-reduced-motion: reduce) {
   .lc-compare,
   .lc-apply,
-  .lc-scroll tbody tr { transition: none; }
+.lc-scroll tbody tr { transition: none; }
 }
+@media(min-width:641px) and (max-width:900px){.lc-scroll table{display:table!important;border-collapse:collapse!important;border-spacing:0!important}.lc-scroll thead{display:table-header-group!important}.lc-scroll tbody{display:table-row-group!important}.lc-scroll tr{display:table-row!important;border:0!important;border-radius:0!important;box-shadow:none!important}.lc-scroll td{display:table-cell!important;width:auto!important;min-height:0!important;text-align:left!important}.lc-scroll td::before{display:none!important}.lc-scroll td:last-child,.lc-scroll td:nth-last-child(2){text-align:center!important}.lc-scroll td[data-label="Lender"]{display:table-cell!important}.lc-scroll .lc-rate-list,.lc-scroll .lc-terms{justify-self:auto!important;text-align:left!important}.lc-scroll .lc-choice,.lc-scroll .lc-apply{justify-self:auto!important}}
+
+/* Compact scan-first presentation for the Compare All directory only. */
+.lc-compare-directory .lc-toolbar{border:0;background:transparent;box-shadow:none;padding:4px 0 18px}.lc-compare-directory .lc-count{color:#48688d!important;font-size:.84rem!important}.lc-compare-directory .lc-count span{display:inline;background:transparent;color:inherit;margin:0}.lc-compare-directory .lc-scroll table{min-width:980px!important}.lc-compare-directory .lc-col-lender{width:14%!important}.lc-compare-directory .lc-col-loan,.lc-compare-directory .lc-col-rates,.lc-compare-directory .lc-col-terms{width:14%!important}.lc-compare-directory .lc-col-compare{width:14%!important}.lc-compare-directory .lc-col-action{width:16%!important}.lc-compare-directory .lc-scroll td{height:80px;padding:14px 12px!important}.lc-compare-directory .lc-lender{min-height:52px!important;gap:10px!important}.lc-compare-directory .lc-lender .lc-badge{width:46px!important;height:46px!important;min-width:46px!important;flex-basis:46px!important;padding:5px!important;border-radius:10px!important}.lc-compare-directory .lc-lender strong{font-size:.81rem!important;font-weight:850!important}.lc-compare-directory .lc-category{display:inline-flex;margin-top:5px!important;border-radius:999px;background:#e7f6f1;padding:3px 6px;color:#08786e;font-size:.58rem!important;font-weight:900!important;letter-spacing:.025em}.lc-single-rate{color:#007c70!important;font-weight:850!important;white-space:nowrap}.lc-compare-directory .lc-choice{width:auto;height:auto}.lc-compare-directory .lc-choice input{width:16px!important;height:16px!important}.lc-compare-directory .lc-apply{min-width:96px;min-height:36px!important;border-radius:8px!important;padding:8px 11px!important;font-size:.72rem!important}@media(max-width:640px){.lc-compare-directory .lc-toolbar{padding:0 0 14px}.lc-compare-directory .lc-scroll table{min-width:0!important}.lc-compare-directory .lc-scroll td{height:auto}.lc-compare-directory .lc-single-rate{white-space:normal}.lc-compare-directory .lc-lender .lc-badge{width:48px!important;height:48px!important;min-width:48px!important}}
+
+.lc-scroll .lc-badge.lender-logo-fallback{display:grid!important;place-items:center;padding:0!important;background:#e7f6f1!important;color:#08786e!important;font:900 .67rem Inter,system-ui,sans-serif!important;letter-spacing:.04em}.lc-compare-directory .lc-scroll tbody tr{transition:background-color .18s ease}.lc-compare-directory .lc-scroll tbody tr:nth-child(even){background:#fbfcfd}.lc-compare-directory .lc-scroll tbody tr:hover{background:#f1faf8!important}.lc-compare-directory .lc-scroll td{border-color:#dce6e9!important}.lc-compare-directory .lc-single-rate{font-variant-numeric:tabular-nums}.lc-compare-directory .lc-choice{display:inline-grid;place-items:center;min-width:42px;min-height:42px;border-radius:8px}.lc-compare-directory .lc-choice:hover{background:#e7f6f1}.lc-compare-directory .lc-choice input:focus-visible{outline:3px solid #f5b91d;outline-offset:3px}.lc-compare-directory .lc-apply:focus-visible,.lc-compare-directory .lc-lender:focus-within{outline:3px solid #f5b91d;outline-offset:3px}
+
+/* Dense comparison values are deliberately self-contained, so their rhythm
+   remains consistent even when an individual lender has a longer value. */
+.lc-scroll td[data-label="Interest rates"],.lc-scroll td[data-label="Repayment and fees"]{vertical-align:middle}.lc-rate-list{gap:0!important;border:1px solid #e3ecee;border-radius:9px;background:#fbfdfd;overflow:hidden}.lc-rate-list span{display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;margin:0!important;padding:10px 11px!important;border:0!important}.lc-rate-list span+span{border-top:1px solid #e3ecee!important}.lc-rate-list small{display:inline-flex;width:max-content;align-items:center;border-radius:999px;background:#e7f6f1;padding:3px 6px;color:#08786e!important;font-size:.61rem!important;font-weight:850!important;letter-spacing:.025em}.lc-rate-list b{min-width:0;color:#102a52!important;font-size:.8rem!important;font-weight:850!important;text-align:right;white-space:normal!important;overflow-wrap:anywhere}.lc-terms{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:0!important;overflow:hidden;border:1px solid #e3ecee;border-radius:9px;background:#fbfdfd}.lc-terms>div{min-height:57px;padding:9px 10px!important}.lc-terms>div:nth-child(odd){border-right:1px solid #e3ecee}.lc-terms>div:nth-child(-n+2){border-bottom:1px solid #e3ecee}.lc-terms dt{margin:0;color:#718699!important;font-size:.61rem!important;font-weight:800!important;letter-spacing:.025em;line-height:1.25;text-transform:uppercase}.lc-terms dd{margin:5px 0 0!important;color:#173753!important;font-size:.75rem!important;font-weight:850!important;line-height:1.3;overflow-wrap:anywhere;text-align:left!important}.lc-scroll tbody tr:hover .lc-rate-list,.lc-scroll tbody tr:hover .lc-terms{border-color:#bcded9;background:#f8fcfb}@media(max-width:640px){.lc-rate-list span{padding:9px 10px!important}.lc-rate-list b{font-size:.78rem!important}.lc-terms>div{min-height:54px;padding:8px 9px!important}.lc-terms dd{font-size:.73rem!important}.lc-scroll td[data-label="Interest rates"],.lc-scroll td[data-label="Repayment and fees"]{align-items:stretch}.lc-scroll td[data-label="Interest rates"] .lc-rate-list,.lc-scroll td[data-label="Repayment and fees"] .lc-terms{width:100%}}
+
+/* Premium comparison-directory layout.  The legacy document supplies the data;
+   these rules intentionally own only presentation and responsive behavior. */
+.lc-page-shell{width:min(1280px,calc(100% - 48px));margin:0 auto;padding:34px 0 74px}.lc-page-shell .crumb{display:inline-flex;align-items:center;min-height:40px;color:#08786e;font:800 .84rem Inter,system-ui,sans-serif;text-decoration:none}.lc-page-shell .crumb:hover{text-decoration:underline}.lc-page-shell .hero{margin:12px 0 32px;padding:clamp(30px,5vw,54px);overflow:hidden;border:1px solid #d8e8e7;border-radius:22px;background:linear-gradient(125deg,#102a52,#17476d 65%,#08786e 150%);color:#fff;box-shadow:0 18px 42px #102a5217}.lc-page-shell .hero .ey,.directory-heading .ey{margin:0 0 10px;color:#8be4d1;font:850 .72rem Inter,system-ui,sans-serif;letter-spacing:.13em;text-transform:uppercase}.lc-page-shell .hero h1{max-width:690px;margin:0;font:800 clamp(2.05rem,4vw,3.5rem)/1.08 Inter,system-ui,sans-serif;letter-spacing:-.04em}.lc-page-shell .hero>p:last-child{max-width:660px;margin:17px 0 0;color:#dbeaf1;font:400 1rem/1.7 Inter,system-ui,sans-serif}.directory{margin:0}.directory-heading{display:flex;align-items:end;justify-content:space-between;gap:24px;margin:0 0 18px}.directory-heading .ey{color:#08786e}.directory-heading h2{margin:0;color:#102a52;font:800 clamp(1.45rem,2.8vw,2rem)/1.15 Inter,system-ui,sans-serif;letter-spacing:-.025em}.directory-heading>p{max-width:330px;margin:0;color:#647b8e;font:600 .82rem/1.55 Inter,system-ui,sans-serif}.directory>.lender-page{width:100%;margin:0;padding:0;overflow:visible}.directory .legal{margin:18px 0 0;color:#718698;font:600 .75rem/1.55 Inter,system-ui,sans-serif}.lc-tabs{display:flex!important;flex-wrap:wrap;gap:9px;margin:0 0 18px!important}.lc-tabs button{min-height:40px!important;border:1px solid #d5e2e4!important;border-radius:999px!important;background:#fff!important;padding:9px 15px!important;color:#45627a!important;font:800 .78rem Inter,system-ui,sans-serif!important;cursor:pointer;transition:border-color .18s,background .18s,color .18s,transform .18s}.lc-tabs button:hover{border-color:#66b8ae!important;background:#f0faf8!important;color:#08786e!important;transform:translateY(-1px)}.lc-tabs button.active{border-color:#08786e!important;background:#08786e!important;color:#fff!important}.lc-tabs button:focus-visible{outline:3px solid #f5b91d!important;outline-offset:3px}.lc-toolbar{margin:0 0 18px!important;border:1px solid #d8e5e5;border-radius:15px;background:#fff;padding:14px 16px 14px 18px;box-shadow:0 8px 22px #102a5209}.lc-count{color:#486277!important}.lc-count span{display:inline-grid;width:25px;height:25px;place-items:center;margin-right:4px;border-radius:50%;background:#e7f6f1;color:#08786e}.lc-compare{min-height:44px!important;border-radius:10px!important;padding:10px 17px!important}.lc-compare:disabled{background:#aec8c5!important;color:#eff8f6!important;cursor:not-allowed}.lc-scroll{overflow:auto!important;border-radius:15px!important;box-shadow:0 10px 30px #102a5210!important}.lc-scroll table{min-width:1200px!important;table-layout:fixed}.lc-col-lender{width:20%!important}.lc-col-loan{width:12%!important}.lc-col-rates{width:16%!important}.lc-col-terms{width:22%!important}.lc-col-compare{width:7%!important}.lc-col-action{width:11%!important}.lc-scroll th{position:sticky;top:0;z-index:2;padding:16px 13px!important;font-size:.68rem!important;letter-spacing:.055em;text-transform:uppercase}.lc-scroll td{padding:18px 13px!important;font-size:.82rem!important;line-height:1.45!important}.lc-scroll tbody tr:nth-child(even){background:#fbfcfd}.lc-scroll tbody tr:hover{background:#eff9f7!important}.lc-scroll th:first-child,.lc-scroll td:first-child{padding-left:18px!important}.lc-scroll th:nth-last-child(2),.lc-scroll th:last-child,.lc-scroll td:nth-last-child(2),.lc-scroll td:last-child{text-align:center}.lc-lender{min-height:66px!important;gap:12px!important}.lc-lender strong{font-size:.9rem!important}.lc-rate-list{gap:9px!important}.lc-rate-list span{padding-bottom:7px;border-bottom:1px solid #e6edef}.lc-rate-list span:last-child{padding-bottom:0;border-bottom:0}.lc-rate-list small,.lc-terms dt{font-size:.67rem!important;letter-spacing:.01em}.lc-rate-list b{font-size:.78rem!important;white-space:nowrap}.lc-terms{gap:11px 14px!important}.lc-terms dd{font-size:.76rem!important;line-height:1.35}.lc-choice{width:44px;height:44px}.lc-choice input{width:20px!important;height:20px!important}.lc-apply{min-width:118px;min-height:40px!important;border-radius:8px!important;white-space:nowrap}.lc-scroll:focus-visible{outline:3px solid #f5b91d;outline-offset:3px}@media(min-width:641px) and (max-width:1000px){.lc-scroll th:first-child,.lc-scroll td:first-child{position:sticky;left:0;z-index:1;background:#fff;box-shadow:8px 0 12px #102a5208}.lc-scroll th:first-child{z-index:3;background:#0d2a52}.lc-scroll tbody tr:nth-child(even) td:first-child{background:#fbfcfd}.lc-scroll tbody tr:hover td:first-child{background:#eff9f7}}@media(max-width:640px){.lc-page-shell{width:min(100% - 28px,560px);padding:18px 0 48px}.lc-page-shell .hero{margin:8px 0 24px;padding:28px 22px;border-radius:17px}.lc-page-shell .hero h1{font-size:2.05rem}.directory-heading{display:block;margin-bottom:16px}.directory-heading>p{margin-top:8px}.lc-toolbar{align-items:stretch!important;flex-direction:column;padding:14px!important}.lc-compare{width:100%}.lc-scroll{overflow:visible!important;border:0!important;background:transparent!important;box-shadow:none!important}.lc-scroll table{min-width:0!important}.lc-scroll th{position:static}.lc-scroll td{padding:11px 14px!important}.lc-scroll tbody tr{border-radius:15px!important}.lc-rate-list{gap:6px!important}.lc-terms{gap:8px 12px!important}.lc-choice{height:38px}.lc-apply{min-width:126px}.directory .legal{font-size:.72rem}}

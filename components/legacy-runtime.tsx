@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { LegacyLenderLogos } from "@/components/legacy-lender-logos";
 import { SiteHeader } from "@/components/site-header";
 
 type Props = { body: string; scripts: string[] };
@@ -111,5 +112,6 @@ export function LegacyRuntime({ body, scripts }: Props) {
   return <>
     <SiteHeader />
     <div ref={root} dangerouslySetInnerHTML={{ __html: body }} />
+    <LegacyLenderLogos root={root} />
   </>;
 }

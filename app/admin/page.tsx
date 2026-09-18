@@ -45,10 +45,14 @@ export default async function AdminDashboard() {
         <div className="cw-admin-panel-head">
           <h2>Recent student enquiries</h2>
           <div className="cw-admin-actions">
-            <Link href="/admin/leads?sourcePage=source%3Dpopup">
-              Popup leads
+            <Link className="cw-admin-toolbar-primary" href="/admin/leads?sourcePage=source%3Dpopup">
+              <ToolbarIcon name="popup" />
+              <span>Popup leads</span>
             </Link>
-            <Link href="/admin/leads">View all leads</Link>
+            <Link className="cw-admin-toolbar-secondary" href="/admin/leads">
+              <ToolbarIcon name="all" />
+              <span>View all leads</span>
+            </Link>
           </div>
         </div>
         <div className="cw-admin-table-wrap">
@@ -118,13 +122,17 @@ function Stat({
   const iconContent = {
     leads: (
       <>
-        <circle cx="12" cy="8" r="3" />
-        <path d="M5 20c.7-3.4 3-5 7-5s6.3 1.6 7 5" />
+        <circle cx="9" cy="8" r="2.6" />
+        <circle cx="16.5" cy="9.5" r="2.1" />
+        <path d="M3.8 20c.5-3.2 2.5-5 5.2-5 2.8 0 4.7 1.8 5.2 5" />
+        <path d="M14 16c2.4.2 4 1.5 4.5 4" />
       </>
     ),
     new: (
       <>
-        <path d="M12 4v16M4 12h16" />
+        <circle cx="10" cy="8" r="3" />
+        <path d="M4 20c.6-3.2 2.7-5 6-5 1.4 0 2.6.3 3.6.9" />
+        <path d="M18 10v6M15 13h6" />
       </>
     ),
     applications: (
@@ -152,6 +160,25 @@ function Stat({
         <b>{value}</b>
       </div>
     </article>
+  );
+}
+function ToolbarIcon({ name }: { name: "popup" | "all" }) {
+  return (
+    <svg className="cw-admin-toolbar-icon" viewBox="0 0 24 24" aria-hidden="true">
+      {name === "popup" ? (
+        <>
+          <path d="M5 5h14v10H9l-4 4V5Z" />
+          <path d="M9 9h6M9 12h4" />
+        </>
+      ) : (
+        <>
+          <path d="M5 7h14M5 12h14M5 17h14" />
+          <circle cx="3.5" cy="7" r=".7" fill="currentColor" />
+          <circle cx="3.5" cy="12" r=".7" fill="currentColor" />
+          <circle cx="3.5" cy="17" r=".7" fill="currentColor" />
+        </>
+      )}
+    </svg>
   );
 }
 function formatTechnicalValue(value: string) {

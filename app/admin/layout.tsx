@@ -3,8 +3,20 @@ import "./admin-polish.css";
 import "./leads-polish.css";
 import "./admin-modern.css";
 import "./admin-fixes.css";
+import "./dashboard-polish.css";
+import "./icon-actions.css";
+import "./content-management-polish.css";
+import "./users-polish.css";
+import "./lender-delete-dialog.css";
+import "./lender-editor-polish.css";
+import "./applications-polish.css";
+import "./student-profile-polish.css";
+import "./leads-crm-polish.css";
+import "./lead-status-control-polish.css";
+import "./lead-detail-polish.css";
+import { AdminActionTooltips } from "@/components/admin-action-tooltips";
 export default function AdminLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  return children;
+  return <>{children}<AdminActionTooltips /></>;
 }

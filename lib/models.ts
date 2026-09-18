@@ -189,6 +189,11 @@ const leadActivitySchema = new Schema(
 );
 leadNoteSchema.index({ leadId: 1, createdAt: -1 });
 leadActivitySchema.index({ leadId: 1, createdAt: -1 });
+const leadLenderAssignmentSchema = new Schema({ leadId:{type:Schema.Types.ObjectId,ref:"Lead",required:true,index:true}, lenderId:{type:Schema.Types.ObjectId,ref:"Lender",required:true,index:true}, status:{type:String,enum:["ASSIGNED","IN_REVIEW","APPLIED","APPROVED","REJECTED","ARCHIVED"],default:"ASSIGNED"}, assignedById:{type:Schema.Types.ObjectId,ref:"AdminUser",required:true}, notes:{type:String,maxlength:4000}, applicationId:{type:Schema.Types.ObjectId,ref:"Application"}, archivedAt:Date, archivedById:{type:Schema.Types.ObjectId,ref:"AdminUser"} },schemaOptions);
+leadLenderAssignmentSchema.index({leadId:1,lenderId:1},{unique:true,partialFilterExpression:{archivedAt:null}});
+leadLenderAssignmentSchema.index({leadId:1,status:1,createdAt:-1});
+const leadFollowUpSchema = new Schema({ leadId:{type:Schema.Types.ObjectId,ref:"Lead",required:true,index:true}, assignedToId:{type:Schema.Types.ObjectId,ref:"AdminUser",required:true}, dueAt:{type:Date,required:true,index:true}, reminderAt:Date, priority:{type:String,enum:["LOW","NORMAL","HIGH"],default:"NORMAL"}, description:{type:String,maxlength:4000}, status:{type:String,enum:["OPEN","COMPLETED","CANCELLED"],default:"OPEN"}, completedById:{type:Schema.Types.ObjectId,ref:"AdminUser"}, completedAt:Date, cancelledById:{type:Schema.Types.ObjectId,ref:"AdminUser"}, cancelledAt:Date },schemaOptions);
+leadFollowUpSchema.index({assignedToId:1,status:1,dueAt:1});
 const applicationSchema = new Schema(
   {
     leadId: {
@@ -241,7 +246,7 @@ const lenderSchema = new Schema(
     collateralAvailable: { type: Boolean, default: false },
     nonCollateralAvailable: { type: Boolean, default: false },
     loanType: String,
-    lenderType: { type: String, enum: ["BANK", "NBFC", "INTERNATIONAL"] },
+    lenderType: { type: String, enum: ["BANK", "NBFC", "INTERNATIONAL", "OTHER"] },
     collateral: String,
     country: String,
     securedRate: String,
@@ -343,6 +348,8 @@ export const StudentProfile = registeredModel(
 export const Lead = registeredModel("Lead", leadSchema);
 export const LeadNote = registeredModel("LeadNote", leadNoteSchema);
 export const LeadActivity = registeredModel("LeadActivity", leadActivitySchema);
+export const LeadLenderAssignment = registeredModel("LeadLenderAssignment", leadLenderAssignmentSchema);
+export const LeadFollowUp = registeredModel("LeadFollowUp", leadFollowUpSchema);
 export const Application = registeredModel("Application", applicationSchema);
 export const Lender = registeredModel("Lender", lenderSchema);
 export const BlogPost = registeredModel("BlogPost", blogPostSchema);

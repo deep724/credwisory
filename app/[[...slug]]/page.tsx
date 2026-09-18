@@ -37,6 +37,7 @@ export default async function Page({ params }: Props) {
       : pathnameToLegacyFile(slug);
   const page = await loadLegacyPage(filename);
   if (!page) notFound();
+  const stylesheets = filename === "compare-all-lenders.html" ? [...page.stylesheets, "/compare-selection-fix.css"] : page.stylesheets;
   // Tailwind is compiled from the preserved legacy HTML at build time. Do not
   // execute the former CDN loader after hydration.
   const scripts = page.scripts.filter(
@@ -86,36 +87,16 @@ export default async function Page({ params }: Props) {
     ].includes(filename)
   )
     scripts.unshift('<script src="/lender-application-modal.js"></script>');
-  if (
-    [
-      "index.html",
-      "compare-all-lenders.html",
-      "bank-lenders.html",
-      "nbfc-lenders.html",
-      "international-lenders.html",
-      "interest-rate-comparison.html",
-    ].includes(filename)
-  )
-    scripts.unshift('<script src="/lender-logo-enhancements.js"></script>');
+
   if (filename === "index.html")
     scripts.push(
       '<script src="/homepage-lender-directory.js"></script>',
       '<script src="/homepage-lender-options.js"></script>',
       '<script src="/homepage-journey.js"></script>',
     );
-  if (
-    [
-      "index.html",
-      "compare-all-lenders.html",
-      "bank-lenders.html",
-      "nbfc-lenders.html",
-      "international-lenders.html",
-    ].includes(filename)
-  )
-    scripts.push('<script src="/lender-saved-logo.js"></script>');
+
   // Website-controlled lead capture is available across public legacy pages;
   // its per-load guard prevents duplicate prompts during a single visit.
-  scripts.push('<script src="/lead-popup.js"></script>');
   if (["eligibility.html", "scholarship-eligibility.html"].includes(filename))
     scripts.push('<script src="/contact-fields-only.js"></script>');
   if (filename === "scholarships.html")
@@ -133,7 +114,7 @@ export default async function Page({ params }: Props) {
     scripts.push('<script src="/lender-mobile-comparison.js"></script>');
   return (
     <>
-      {page.stylesheets.map((href) => (
+      {stylesheets.map((href) => (
         <link key={href} rel="stylesheet" href={href} />
       ))}
       <LegacyRuntime body={page.body} scripts={scripts} />

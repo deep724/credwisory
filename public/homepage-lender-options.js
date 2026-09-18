@@ -1,1 +1,36 @@
-(()=>{const root=document.getElementById('homepageLenderOptions');if(!root||root.dataset.mounted)return;root.dataset.mounted='true';const choices=[['union-bank-of-india','Competitive rates for ambitious plans'],['state-bank-of-india','Trusted support, across the world'],['incred','Flexible financing for your future']],esc=value=>String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));root.innerHTML='<p class="text-sm text-muted">Loading lender options…</p>';fetch('/api/lenders',{headers:{accept:'application/json'}}).then(r=>r.ok?r.json():Promise.reject()).then(items=>{const lenders=new Map(Array.isArray(items)?items.map(x=>[x.slug,x]):[]),cards=choices.map(([slug,description])=>{const lender=lenders.get(slug);if(!lender?.name)return'';const logo=lender.logoUrl?`<span class="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5"><img src="${esc(lender.logoUrl)}" alt="${esc(lender.name)} logo" class="h-full w-full object-contain"></span>`:'';return `<article class="flex items-center gap-3 rounded-2xl border border-slate-100 bg-[#FCFDFC] p-3.5 transition hover:border-teal/25"><div class="min-w-0 flex flex-1 items-center gap-3">${logo}<div class="min-w-0"><h3 class="text-sm font-extrabold text-navy">${esc(lender.name)}</h3><p class="mt-0.5 text-xs text-muted">${esc(description)}</p></div></div><a href="/apply?lender=${encodeURIComponent(lender.slug)}" aria-label="Explore ${esc(lender.name)} education loan" class="inline-flex min-h-9 shrink-0 items-center rounded-lg bg-[#E7F6F1] px-2.5 py-1.5 text-[10px] font-bold text-teal transition hover:bg-teal hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal active:scale-95">Explore</a></article>`}).filter(Boolean);root.innerHTML=cards.length?cards.join(''):'<p class="text-sm text-muted">Lender options are temporarily unavailable.</p>'}).catch(()=>{root.innerHTML='<p class="text-sm text-muted">Lender options are temporarily unavailable.</p>'})})();
+/* Homepage lender options retain API data while preferring approved local logo assets. */
+(() => {
+  const root = document.getElementById("homepageLenderOptions");
+  if (!root || root.dataset.mounted) return;
+  root.dataset.mounted = "true";
+  root.classList.add("cw-home-lender-options");
+  const panel = root.parentElement;
+  panel?.classList.add("cw-home-lender-panel");
+  const heading = panel?.querySelector("h2");
+  if (heading) {
+    heading.textContent = "Find an education loan that fits.";
+    if (!panel.querySelector(".cw-home-lender-badges")) heading.insertAdjacentHTML("afterend", '<div class="cw-home-lender-badges"><span>Fully digital process</span><span>No hidden surprises</span></div>');
+  }
+  const choices = [
+    ["union-bank-of-india", "Competitive rates for ambitious plans", "Competitive rates"],
+    ["state-bank-of-india", "Trusted support for global study plans", "Trusted lender support"],
+    ["incred", "Flexible financing for your future", "Flexible loan routes"],
+  ];
+
+  const esc = (value) => String(value ?? "").replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[character]));
+
+  root.innerHTML = '<p class="cw-home-options-state">Loading lender options…</p>';
+  fetch("/api/lenders", { headers: { accept: "application/json" } })
+    .then((response) => response.ok ? response.json() : Promise.reject())
+    .then((items) => {
+      const lenders = new Map(Array.isArray(items) ? items.map((item) => [item.slug, item]) : []);
+      const cards = choices.map(([slug, description, benefit]) => {
+        const lender = lenders.get(slug);
+        if (!lender?.name) return "";
+        const logo = `<span data-lender-logo-slot data-logo-name="${esc(lender.name)}" data-logo-slug="${esc(slug)}" data-logo-url="${esc(lender.logoUrl || '')}" data-logo-size="card"></span>`;
+        return `<article class="cw-home-option-card"><div class="cw-home-option-logo">${logo}</div><div class="cw-home-option-copy"><h3>${esc(lender.name)}</h3><p>${esc(description)}</p><small>${esc(lender.comparison?.securedRate || benefit)}</small></div><a href="/apply?lender=${encodeURIComponent(lender.slug)}" aria-label="View details for ${esc(lender.name)}">View details <b aria-hidden="true">→</b></a></article>`;
+      }).filter(Boolean);
+      root.innerHTML = cards.length ? cards.join("") : '<p class="cw-home-options-state">Lender options are temporarily unavailable.</p>';
+    })
+    .catch(() => { root.innerHTML = '<p class="cw-home-options-state">Lender options are temporarily unavailable.</p>'; });
+})();

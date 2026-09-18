@@ -15,7 +15,7 @@
     const connected = (root) => root?.isConnected === true;
     const category = (value) => {
       const normalized = String(value || '').toLowerCase();
-      return ['bank', 'nbfc', 'international'].includes(normalized) ? normalized : null;
+      return ['bank', 'nbfc', 'international', 'other'].includes(normalized) ? normalized : null;
     };
     const initials = (name) => name.split(/\s+/).map((part) => part[0]).join('').slice(0, 4).toUpperCase();
     const detail = (lender, key, fallback = 'Contact for details') => String(lender.comparison?.[key] ?? lender[key] ?? fallback);
@@ -27,7 +27,7 @@
         type,
         initials: initials(lender.name),
         name: lender.name,
-        logo: lender.logo || lender.logoUrl || '',
+        logoUrl: lender.logoUrl || lender.logo || "",
         secured: detail(lender, 'secured'),
         unsecured: detail(lender, 'unsecured'),
         securedRate: detail(lender, 'securedRate', lender.securedRate || 'Contact for details'),
@@ -46,9 +46,8 @@
     const markCompareScroll = (ids) => {
       try { sessionStorage.setItem('cw-lender-compare-scroll', ids.join(',')); } catch {}
     };
-    const lenderLogo = (lender) => lender.logo
-      ? `<img class="lc-logo" src="${lender.logo}" alt="" onerror="this.remove()">`
-      : `<span class="lc-badge" aria-hidden="true">${lender.initials}</span>`;
+    const escape = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+    const lenderLogo = (lender) => `<span data-lender-logo-slot data-logo-name="${escape(lender.name)}" data-logo-slug="${escape(lender.id)}" data-logo-url="${escape(lender.logoUrl)}"></span>`;
     const rateMarkup = (lender) => `<div class="lc-rate-list"><span><small>Secured</small><b>${display(lender.securedRate)}</b></span><span><small>Unsecured</small><b>${display(lender.unsecuredRate)}</b></span></div>`;
     const termsMarkup = (lender) => `<dl class="lc-terms"><div><dt>Moratorium</dt><dd>${display(lender.moratorium)}</dd></div><div><dt>Tenure</dt><dd>${display(lender.tenure)}</dd></div><div><dt>Foreclosure</dt><dd>${display(lender.foreclosure)}</dd></div><div><dt>Fees</dt><dd>${display(lender.fee)}</dd></div></dl>`;
 
@@ -56,6 +55,7 @@
       if (!connected(root)) return;
       const kind = root.dataset.lenderCategory || 'all';
       const comparePage = kind === 'all';
+      root.classList.toggle('lc-compare-directory', comparePage);
       const items = comparePage ? lenders : lenders.filter((lender) => lender.type === kind);
       if (!items.length) {
         root.innerHTML = `<p class="lc-empty" role="status">No published ${comparePage ? 'lenders' : `${kind} lenders`} are available right now.</p>`;
@@ -77,14 +77,35 @@
               <col class="lc-col-lender"><col class="lc-col-loan"><col class="lc-col-loan">
               <col class="lc-col-rates"><col class="lc-col-terms"><col class="lc-col-compare"><col class="lc-col-action">
             </colgroup>
-            <thead><tr>
-              <th>Lender</th><th>Secured loan</th><th>Unsecured loan</th><th>Interest rates</th>
-              <th>Repayment &amp; fees</th><th>Compare</th><th>Action</th>
-            </tr></thead>
+            <thead><tr>${comparePage
+              ? '<th>Lender</th><th>Secured loan</th><th>Unsecured loan</th><th>Secured rate</th><th>Unsecured rate</th><th>Compare</th><th>Action</th>'
+              : '<th>Lender</th><th>Secured loan</th><th>Unsecured loan</th><th>Interest rates</th><th>Repayment &amp; fees</th><th>Compare</th><th>Action</th>'
+            }</tr></thead>
             <tbody></tbody>
           </table>
         </div>
         ${comparePage ? '<section class="lc-inline" hidden aria-live="polite"><div class="lc-inline-head"><div><p class="lc-eyebrow">SIDE-BY-SIDE VIEW</p><h2>Your selected lender comparison</h2></div><button class="lc-clear" type="button">Clear comparison</button></div><div class="lc-grid-wrap"><div class="lc-grid"></div></div></section>' : ''}`;
+
+      const toolbar = root.querySelector('.lc-toolbar');
+      const toolbarClear = document.createElement('button');
+      toolbarClear.className = 'lc-toolbar-clear lc-clear';
+      toolbarClear.type = 'button';
+      toolbarClear.textContent = 'Clear selection';
+      toolbarClear.hidden = true;
+      toolbar?.append(toolbarClear);
+      const inlineClear = root.querySelector('.lc-inline .lc-clear');
+      if (inlineClear) inlineClear.textContent = 'Clear selection';
+
+      if (comparePage) {
+        const comparisonHead = root.querySelector('.lc-inline-head');
+        if (comparisonHead) {
+          const back = document.createElement('a');
+          back.className = 'lc-back-directory';
+          back.href = '/lenders';
+          back.textContent = 'Back to lenders';
+          comparisonHead.append(back);
+        }
+      }
 
       const draw = () => {
         if (!connected(root)) return false;
@@ -93,22 +114,27 @@
         const full = selected.length === 4;
         tbody.innerHTML = items.map((lender) => `
           <tr>
-            <td data-label="Lender"><div class="lc-lender">${lenderLogo(lender)}<span><strong>${lender.name}</strong><span class="lc-category">${lender.type === 'international' ? 'International lender' : lender.type.toUpperCase()}</span></span></div></td>
+            <td data-label="Lender"><div class="lc-lender">${lenderLogo(lender)}<span><strong>${lender.name}</strong><span class="lc-category">${lender.type === 'international' ? 'International lender' : lender.type === 'other' ? 'Specialist lender' : lender.type.toUpperCase()}</span></span></div></td>
             <td data-label="Secured loan maximum"><span class="lc-value">${display(lender.secured)}</span></td>
             <td data-label="Unsecured loan maximum"><span class="lc-value">${display(lender.unsecured)}</span></td>
-            <td data-label="Interest rates">${rateMarkup(lender)}</td>
-            <td data-label="Repayment and fees">${termsMarkup(lender)}</td>
+            ${comparePage
+              ? `<td data-label="Secured rate" class="lc-single-rate">${display(lender.securedRate)}</td><td data-label="Unsecured rate" class="lc-single-rate">${display(lender.unsecuredRate)}</td>`
+              : `<td data-label="Interest rates">${rateMarkup(lender)}</td><td data-label="Repayment and fees">${termsMarkup(lender)}</td>`
+            }
             <td data-label="Compare"><label class="lc-choice"><input type="checkbox" aria-label="Compare ${lender.name}" data-id="${lender.id}" ${selected.includes(lender.id) ? 'checked' : ''} ${full && !selected.includes(lender.id) ? 'disabled' : ''}></label></td>
             <td data-label="Action"><a class="lc-apply" href="/apply?lender=${encodeURIComponent(lender.id)}">Apply with us <span aria-hidden="true">→</span></a></td>
           </tr>`).join('');
         const count = root.querySelector('.lc-count');
         const button = root.querySelector('.lc-compare');
         const message = root.querySelector('.lc-selection-message');
+        const clear = root.querySelector('.lc-toolbar-clear');
         if (count) count.innerHTML = `<span>${selected.length}</span> of 4 lenders selected`;
-        if (button) button.disabled = selected.length < 2;
+        if (toolbar) toolbar.hidden = selected.length === 0;
+        if (button) { button.disabled = selected.length < 2; button.hidden = selected.length < 2; }
+        if (clear) clear.hidden = selected.length === 0;
         if (message) {
-          message.hidden = !full;
-          if (full) message.textContent = 'Maximum reached: deselect one lender to choose another.';
+          message.hidden = true;
+          message.textContent = '';
         }
         return true;
       };
@@ -139,12 +165,12 @@
         markCompareScroll(selected);
         location.href = `/compare-all-lenders?compare=${encodeURIComponent(selected.join(','))}`;
       });
-      root.querySelector('.lc-clear')?.addEventListener('click', () => {
+      root.querySelectorAll('.lc-clear').forEach((clear) => clear.addEventListener('click', () => {
         selected = [];
         const inline = root.querySelector('.lc-inline');
         if (inline) inline.hidden = true;
         draw();
-      });
+      }));
       root.addEventListener('click', (event) => {
         const remove = event.target.closest('[data-remove]');
         if (!remove || !connected(root)) return;

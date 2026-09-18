@@ -55,7 +55,7 @@ async function main() {
   // Standalone schemas keep this CLI independent of Next.js's server-only guard.
   const Role = mongoose.models.Role || mongoose.model("Role", new mongoose.Schema({ key: { type: String, unique: true, required: true }, name: { type: String, required: true } }, { timestamps: true }));
   const AdminUser = mongoose.models.AdminUser || mongoose.model("AdminUser", new mongoose.Schema({ name: String, email: { type: String, unique: true, lowercase: true }, passwordHash: String, roleId: mongoose.Schema.Types.ObjectId, active: Boolean }, { timestamps: true }));
-  const Lender = mongoose.models.Lender || mongoose.model("Lender", new mongoose.Schema({ name: String, slug: { type: String, unique: true }, lenderType: { type: String, enum: ["BANK", "NBFC", "INTERNATIONAL"] }, displayOrder: Number, published: Boolean, comparison: mongoose.Schema.Types.Mixed }, { timestamps: true }));
+  const Lender = mongoose.models.Lender || mongoose.model("Lender", new mongoose.Schema({ name: String, slug: { type: String, unique: true }, lenderType: { type: String, enum: ["BANK", "NBFC", "INTERNATIONAL", "OTHER"] }, displayOrder: Number, published: Boolean, comparison: mongoose.Schema.Types.Mixed }, { timestamps: true }));
   const role = await Role.findOneAndUpdate({ key: "SUPER_ADMIN" }, { $setOnInsert: { name: "Super Admin" } }, { upsert: true, new: true });
   await Role.findOneAndUpdate({ key: "STAFF" }, { $setOnInsert: { name: "Staff" } }, { upsert: true, new: true });
   const email = process.env.ADMIN_SEED_EMAIL?.toLowerCase();

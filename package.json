@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "db:seed": "tsx scripts/seed-mongodb.ts",
     "db:backfill-students": "tsx scripts/backfill-student-profiles.ts",
+    "db:backfill-lead-lender-assignments": "tsx scripts/backfill-lead-lender-assignments.ts",
     "styles:extract-legacy": "tsx scripts/extract-legacy-styles.ts"
   },
   "dependencies": {

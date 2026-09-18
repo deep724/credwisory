@@ -89,7 +89,9 @@
         image.alt = "Logo unavailable";
       } else {
         image.remove();
-        element.setAttribute("aria-label", "Logo unavailable");
+        element.classList.add("lender-logo-fallback");
+        element.textContent = name.split(/\s+/).filter(Boolean).map((part) => part[0]).join("").slice(0, 3).toUpperCase();
+        element.setAttribute("aria-label", `${name} logo`);
       }
     });
     element.append(image);

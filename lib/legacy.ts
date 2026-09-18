@@ -12,7 +12,7 @@ const pageNames = new Set([
   "emi-calculator.html", "loan-takeover-calculator.html", "interest-rate-comparison.html"
 ]);
 const pagesWithExtractedStyles = new Set([
-  "application-guidance.html", "blogs.html", "eligibility.html", "faq.html", "how-education-loans-work.html",
+  "application-guidance.html", "blogs.html", "contact.html", "eligibility.html", "faq.html", "how-education-loans-work.html",
   "index.html", "loan-with-collateral.html", "loan-without-collateral.html", "refer-a-friend.html",
   "scholarship-eligibility.html", "scholarships.html", "sop-guidance.html", "talk-to-an-expert.html"
 ]);
@@ -132,6 +132,9 @@ export async function loadLegacyPage(filename: string): Promise<LegacyPage | nul
 
   const scripts: string[] = [];
   collectExecutableScripts(document, scripts);
+  if (filename === "emi-calculator.html" || filename === "loan-takeover-calculator.html") {
+    scripts.push('<script src="/tool-calculator-actions.js"></script>');
+  }
   const title = head ? findFirst(head, "title")?.childNodes.map((node) => "value" in node ? node.value : "").join("").trim() : "";
   const description = head ? findFirst(head, "meta")?.attrs.find((item) => item.name === "content")?.value : undefined;
   // Document-level assets must not be placed inside the div hydrated by
@@ -143,6 +146,7 @@ export async function loadLegacyPage(filename: string): Promise<LegacyPage | nul
     .filter((href): href is string => Boolean(href))
     .map(publicAssetPath) ?? [];
   if (pagesWithExtractedStyles.has(filename)) stylesheets.unshift(`/legacy-styles/${filename.replace(/\.html$/, ".css")}`);
+  stylesheets.push("/legacy-styles/back-navigation.css");
   // Inert calculator sources stay in the document until LegacyRuntime activates them.
   removeUnsafeBodyNodes(body);
   removeLegacyHeaderPlaceholder(body, true);
@@ -151,7 +155,10 @@ export async function loadLegacyPage(filename: string): Promise<LegacyPage | nul
     .filter((node) => !isElement(node, "footer"))
     .map((node) => serializeOuter(node))
     .join("");
-  return { title: title || "Credwisory", description, stylesheets, body: bodyMarkup, scripts };
+  const cleanBodyMarkup = filename === "compare-all-lenders.html"
+    ? bodyMarkup.replace(/<p>Choose up to four lenders for a detailed comparison\.<\/p>/, "")
+    : bodyMarkup;
+  return { title: title || "Credwisory", description, stylesheets, body: cleanBodyMarkup, scripts };
 }
 
 export function pathnameToLegacyFile(slug?: string[]): string {

@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 const groups = [
@@ -9,7 +9,7 @@ const groups = [
     "Education Loans",
     [
       ["Check eligibility", "/eligibility"],
-      ["How education loans work", "/#how-it-works"],
+      ["How education loans work", "/how-education-loans-work"],
       ["Loan without collateral", "/loan-without-collateral"],
       ["Loan with collateral", "/loan-with-collateral"],
     ],
@@ -49,8 +49,8 @@ const groups = [
   [
     "Contact",
     [
-      ["Talk to an expert", "/talk-to-an-expert"],
-      ["Work with Credwisory", "/contact"],
+      ["Talk to an expert", "/contact?tab=expert"],
+      ["Work with Credwisory", "/contact?tab=credwisory"],
     ],
   ],
   ["Refer and Earn", [["Refer and Earn", "/refer-a-friend"]]],
@@ -60,7 +60,12 @@ const id = (name: string, mobile = false) =>
   `cw-${name.toLowerCase().replace(/[^a-z]+/g, "-")}${mobile ? "-mobile" : ""}`;
 
 export function SiteHeader() {
+  return <Suspense fallback={<header className="cw-header" />}><SiteHeaderContent /></Suspense>;
+}
+
+function SiteHeaderContent() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [open, setOpen] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -137,17 +142,16 @@ export function SiteHeader() {
             scheduleClose();
         }}
       >
-        <button
-          className="cw-toggle"
-          type="button"
-          aria-expanded={isOpen}
-          aria-controls={menuId}
-          onClick={() => {
-            cancelClose();
-            setOpen((current) => (current === menuId ? null : menuId));
-          }}
-        >
-          {name}
+        <div className="cw-toggle">
+          {name === "Lenders" ? <Link href="/lenders" onClick={close}>Lenders</Link> : <button type="button" onClick={() => { cancelClose(); setOpen((current) => (current === menuId ? null : menuId)); }}>{name}</button>}
+          <button
+            className="cw-toggle-arrow"
+            type="button"
+            aria-label={`${isOpen ? "Close" : "Open"} ${name} menu`}
+            aria-expanded={isOpen}
+            aria-controls={menuId}
+            onClick={() => { cancelClose(); setOpen((current) => (current === menuId ? null : menuId)); }}
+          >
           <svg
             className="cw-chevron"
             viewBox="0 0 16 16"
@@ -162,10 +166,12 @@ export function SiteHeader() {
               strokeLinejoin="round"
             />
           </svg>
-        </button>
+          </button>
+        </div>
         <div className={`cw-panel${isOpen ? " open" : ""}`} id={menuId}>
           {links.map(([label, href]) => {
-            const active = pathname === href;
+            const [hrefPath, hrefQuery] = href.split("?");
+            const active = pathname === hrefPath && (!hrefQuery || searchParams.toString() === hrefQuery);
             return href.startsWith("/") ? (
               <Link
                 key={href}

@@ -1,22 +1,18 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Interest Rate Comparison | Credwisory</title><link rel="stylesheet" href="tool-pages.css"></head><body>
-<main class="tool-page">
-  <a class="tool-crumb" href="index.html">← Back to home</a>
-  <section class="tool-hero"><p class="tool-eyebrow">COMPARE LENDERS</p><h1>Interest Rate Comparison</h1><p>Review published education-loan rate ranges and terms in one place. Rates are illustrative unless a lender provides verified product data.</p></section>
-  <section class="tool-card" aria-labelledby="rate-comparison-title">
-    <h2 id="rate-comparison-title" class="sr-only">Compare published lender rate information</h2>
-    <span class="rate-demo">Illustrative lender data — verify final eligibility and rates with the lender.</span>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Interest Rate Comparison | Credwisory</title><link rel="stylesheet" href="tool-pages.css"><link rel="stylesheet" href="interest-rate-comparison.css"></head><body>
+<main class="tool-page rate-page"><a class="tool-crumb" href="/" aria-label="Back to home">← <span>Back to home</span></a>
+  <section class="tool-hero rate-hero"><p class="tool-eyebrow">COMPARE LENDERS</p><h1>Interest rate comparison</h1><p>Review published education-loan rate ranges, loan amounts, fees, and tenure in one clear view. Final pricing is always confirmed by the lender.</p></section>
+  <section class="tool-card rate-comparison-card" aria-labelledby="rate-comparison-title"><div class="rate-card-heading"><div><p class="rate-card-eyebrow">REFINE YOUR VIEW</p><h2 id="rate-comparison-title">Compare published lender information</h2><p>Use the filters to focus on the options most relevant to your plan.</p></div><span class="rate-demo" role="note">Illustrative lender data</span></div>
     <div class="rate-filters" aria-label="Interest-rate comparison filters">
       <label class="tool-field">Loan type<select id="rate-loan-type"><option value="all">All loan types</option><option value="secured">Secured</option><option value="unsecured">Unsecured</option></select></label>
       <label class="tool-field">Lender<select id="rate-lender"><option value="all">All lenders</option></select></label>
       <label class="tool-field">Loan amount<select id="rate-amount"><option value="all">Any amount</option><option value="crore">₹1 crore or more</option><option value="lakh">Under ₹1 crore</option></select></label>
       <label class="tool-field">Tenure<select id="rate-tenure"><option value="all">Any tenure</option><option value="15">Up to 15 years</option></select></label>
-      <label class="tool-field">Employment type<select id="rate-employment" disabled aria-describedby="rate-unavailable"><option>Not published by lenders</option></select></label>
-      <label class="tool-field">Credit score range<select id="rate-credit" disabled aria-describedby="rate-unavailable"><option>Not published by lenders</option></select></label>
+      <label class="tool-field is-unavailable">Employment type<select id="rate-employment" disabled aria-describedby="rate-unavailable"><option>Not published by lenders</option></select></label>
+      <label class="tool-field is-unavailable">Credit score range<select id="rate-credit" disabled aria-describedby="rate-unavailable"><option>Not published by lenders</option></select></label>
     </div>
-    <p class="rate-filter-note" id="rate-unavailable">Employment and credit-score criteria are not shown because the current published lender data does not support reliable filtering for them.</p>
+    <div class="rate-filter-footer"><p class="rate-filter-note" id="rate-unavailable" role="note">Employment and credit-score criteria are unavailable because published lender data does not support reliable filtering for them.</p><button class="rate-reset" type="button" id="rate-reset">Reset filters</button></div>
     <p class="rate-status" id="rate-status" role="status" aria-live="polite">Loading published lender data…</p>
-    <div class="rate-table-wrap" tabindex="0" aria-label="Published lender rate comparison table. Scroll horizontally for more columns."><table class="rate-table"><thead><tr><th>Lender</th><th>Interest-rate range</th><th>APR / effective rate</th><th>Processing fee</th><th>Loan amount</th><th>Tenure</th><th>Eligibility / notes</th><th>Action</th></tr></thead><tbody id="rate-rows"></tbody></table></div>
+    <div class="rate-table-wrap" aria-label="Published lender rate comparison table"><table class="rate-table"><thead><tr><th scope="col">Lender</th><th scope="col">Interest-rate range</th><th scope="col">APR / effective rate</th><th scope="col">Processing fee</th><th scope="col">Loan amount</th><th scope="col">Tenure</th><th scope="col">Eligibility / notes</th><th scope="col">Action</th></tr></thead><tbody id="rate-rows"></tbody></table></div>
   </section>
-</main>
-<script src="interest-rate-comparison.js"></script></body></html>
+</main><script src="interest-rate-comparison.js"></script></body></html>

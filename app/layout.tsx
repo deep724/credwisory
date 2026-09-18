@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+import "./lender-logo.css";
 import "./site-polish.css";
 import "./lender-mobile-polish.css";
 import "./lender-mobile-comparison.css";
 import "./mobile-responsive.css";
 import "./consent-polish.css";
-import "./lead-popup.css";
-import "./lead-popup-mobile.css";
 import "./homepage-journey.css";
 import "./homepage-anchor.css";
 import "./blog.css";
+import "./notification-permission.css";
+import { NotificationPermissionCard } from "@/components/notification-permission-card";
 
 export const metadata: Metadata = {
   title: {
@@ -28,7 +29,7 @@ export default function RootLayout({
       <head>
         <meta charSet="utf-8" />
       </head>
-      <body>{children}</body>
+      <body>{children}<NotificationPermissionCard /></body>
     </html>
   );
 }

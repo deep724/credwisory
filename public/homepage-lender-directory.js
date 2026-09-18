@@ -20,6 +20,7 @@
   const initials = (name) => name.split(/\s+/).map((part) => part[0]).join("").slice(0, 4).toUpperCase();
   const detail = (lender, key, fallback = "Contact for details") => String(lender.comparison?.[key] ?? lender[key] ?? fallback);
   const escape = (value) => String(value ?? "").replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
+  const logoSlot = (lender, size = "table") => `<span data-lender-logo-slot data-logo-name="${escape(lender.name)}" data-logo-slug="${escape(lender.id || lender.slug)}" data-logo-url="${escape(lender.logoUrl || '')}" data-logo-size="${size}"></span>`;
   let lenders = [], selected = [], active = "all";
 
   const visibleLenders = () => lenders.filter((lender) => active === "all" || lender.type === active).slice(0, 7);
@@ -27,7 +28,7 @@
     if (!root.isConnected) return;
     const items = visibleLenders();
     table.innerHTML = items.length
-      ? `<table class="semantic-lender-table"><thead><tr><th>Lender</th><th>Secured loan</th><th>Unsecured loan</th><th>Secured rate</th><th>Unsecured rate</th><th>Compare</th><th>Action</th></tr></thead><tbody>${items.map((lender) => `<tr><td data-label="Lender"><div class="lender-cell"><i>${escape(lender.initials)}</i><span>${escape(lender.name)}<small class="illustrative">${escape(lender.type.toUpperCase())}</small></span></div></td><td data-label="Secured loan">${escape(lender.secured)}</td><td data-label="Unsecured loan">${escape(lender.unsecured)}</td><td data-label="Secured rate" class="rate">${escape(lender.securedRate)}</td><td data-label="Unsecured rate" class="rate">${escape(lender.unsecuredRate)}</td><td data-label="Compare"><label><input type="checkbox" data-id="${escape(lender.id)}" aria-label="Compare ${escape(lender.name)}" ${selected.includes(lender.id) ? "checked" : ""} ${selected.length === 4 && !selected.includes(lender.id) ? "disabled" : ""}> Compare</label></td><td data-label="Action"><a class="table-apply" href="/apply?lender=${encodeURIComponent(lender.id)}" aria-label="Apply with ${escape(lender.name)}">Apply with us</a></td></tr>`).join("")}</tbody></table>`
+      ? `<table class="semantic-lender-table"><thead><tr><th>Lender</th><th>Secured loan</th><th>Unsecured loan</th><th>Secured rate</th><th>Unsecured rate</th><th>Compare</th><th>Action</th></tr></thead><tbody>${items.map((lender) => `<tr><td data-label="Lender"><div class="lender-cell">${logoSlot(lender)}<span>${escape(lender.name)}<small class="illustrative">${escape(lender.type.toUpperCase())}</small></span></div></td><td data-label="Secured loan">${escape(lender.secured)}</td><td data-label="Unsecured loan">${escape(lender.unsecured)}</td><td data-label="Secured rate" class="rate">${escape(lender.securedRate)}</td><td data-label="Unsecured rate" class="rate">${escape(lender.unsecuredRate)}</td><td data-label="Compare"><label><input type="checkbox" data-id="${escape(lender.id)}" aria-label="Compare ${escape(lender.name)}" ${selected.includes(lender.id) ? "checked" : ""} ${selected.length === 4 && !selected.includes(lender.id) ? "disabled" : ""}> Compare</label></td><td data-label="Action"><a class="table-apply" href="/apply?lender=${encodeURIComponent(lender.id)}" aria-label="Apply with ${escape(lender.name)}">Apply with us</a></td></tr>`).join("")}</tbody></table>`
       : '<p class="py-6 text-sm font-bold text-muted" role="status">No published lenders are available in this category.</p>';
     count.textContent = `${selected.length} of 4 lenders selected`;
     button.disabled = selected.length < 2;
@@ -55,7 +56,7 @@
       if (!Array.isArray(data)) throw new Error();
       lenders = data.map((lender) => {
         const type = category(lender.lenderType);
-        return type ? { id: String(lender.slug || lender._id), type, displayOrder: Number(lender.displayOrder) || 0, initials: initials(lender.name), name: lender.name, secured: detail(lender, "secured"), unsecured: detail(lender, "unsecured"), securedRate: detail(lender, "securedRate"), unsecuredRate: detail(lender, "unsecuredRate") } : null;
+        return type ? { id: String(lender.slug || lender._id), type, displayOrder: Number(lender.displayOrder) || 0, initials: initials(lender.name), name: lender.name, logoUrl: lender.logoUrl, secured: detail(lender, "secured"), unsecured: detail(lender, "unsecured"), securedRate: detail(lender, "securedRate"), unsecuredRate: detail(lender, "unsecuredRate") } : null;
       }).filter(Boolean).sort((a, b) => a.displayOrder - b.displayOrder || a.id.localeCompare(b.id));
       draw();
     })

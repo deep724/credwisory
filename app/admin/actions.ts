@@ -15,6 +15,8 @@ import {
   BlogPost,
   Lead,
   LeadActivity,
+  LeadLenderAssignment,
+  LeadFollowUp,
   LeadNote,
   Lender,
   Role,
@@ -48,6 +50,15 @@ async function audit(
 ) {
   await AuditLog.create({ actorId, action, entityType, entityId });
 }
+async function requireCrmAccess() { return requireAdmin(); }
+const assignmentInput=z.object({leadId:id,lenderId:id,notes:z.string().max(4000).optional()});
+export async function assignLeadLender(formData:FormData){const admin=await requireCrmAccess();const value=assignmentInput.safeParse(Object.fromEntries(formData));if(!value.success)return{error:"Invalid lender assignment."};await connectToDatabase();const exists=await LeadLenderAssignment.exists({leadId:value.data.leadId,lenderId:value.data.lenderId,archivedAt:null});if(exists)return{error:"This lender is already assigned."};const assignment=await LeadLenderAssignment.create({...value.data,assignedById:admin.id});await Lead.updateOne({_id:value.data.leadId,status:"NEW"},{$set:{status:"IN_PROGRESS",lenderId:value.data.lenderId}});await LeadActivity.create({leadId:value.data.leadId,actorId:admin.id,action:"Lender assigned",metadata:{assignmentId:String(assignment._id),lenderId:value.data.lenderId}});await audit(admin.id,"lead_lender.assigned","LeadLenderAssignment",String(assignment._id));revalidatePath(`/admin/leads/${value.data.leadId}`);return{ok:true,id:String(assignment._id)}}
+export async function archiveLeadLenderAssignment(formData:FormData){const admin=await requireCrmAccess();const value=z.object({id}).safeParse(Object.fromEntries(formData));if(!value.success)return{error:"Invalid assignment."};await connectToDatabase();const assignment=await LeadLenderAssignment.findOneAndUpdate({_id:value.data.id,archivedAt:null},{$set:{archivedAt:new Date(),archivedById:admin.id}},{new:true});if(!assignment)return{error:"Assignment is unavailable."};await LeadActivity.create({leadId:assignment.leadId,actorId:admin.id,action:"Lender assignment archived",metadata:{assignmentId:value.data.id}});await audit(admin.id,"lead_lender.archived","LeadLenderAssignment",value.data.id);return{ok:true}}
+const followUpInput=z.object({leadId:id,assignedToId:id,dueAt:z.string().min(1),reminderAt:z.string().optional(),priority:z.enum(["LOW","NORMAL","HIGH"]).optional(),description:z.string().max(4000).optional()});
+export async function createLeadFollowUp(formData:FormData){const admin=await requireCrmAccess();const value=followUpInput.safeParse(Object.fromEntries(formData));if(!value.success)return{error:"Enter a valid follow-up."};const dueAt=new Date(value.data.dueAt);if(Number.isNaN(+dueAt))return{error:"Enter a valid due time."};await connectToDatabase();const item=await LeadFollowUp.create({...value.data,dueAt,reminderAt:value.data.reminderAt?new Date(value.data.reminderAt):undefined});await LeadActivity.create({leadId:value.data.leadId,actorId:admin.id,action:"Follow-up created",metadata:{followUpId:String(item._id)}});await audit(admin.id,"lead_follow_up.created","LeadFollowUp",String(item._id));return{ok:true,id:String(item._id)}}
+export async function completeLeadFollowUp(formData:FormData){const admin=await requireCrmAccess();const value=z.object({id}).safeParse(Object.fromEntries(formData));if(!value.success)return{error:"Invalid follow-up."};await connectToDatabase();const item=await LeadFollowUp.findOneAndUpdate({_id:value.data.id,status:"OPEN"},{$set:{status:"COMPLETED",completedById:admin.id,completedAt:new Date()}},{new:true});if(!item)return{error:"Follow-up is unavailable."};await LeadActivity.create({leadId:item.leadId,actorId:admin.id,action:"Follow-up completed",metadata:{followUpId:value.data.id}});await audit(admin.id,"lead_follow_up.completed","LeadFollowUp",value.data.id);return{ok:true}}
+export async function listLeadCrmRecords(leadId:string){await requireCrmAccess();if(!id.safeParse(leadId).success)return{error:"Invalid lead."};await connectToDatabase();const [assignments,followUps]=await Promise.all([LeadLenderAssignment.find({leadId,archivedAt:null}).populate("lenderId","name logoUrl lenderType").populate("assignedById","name").lean(),LeadFollowUp.find({leadId}).populate("assignedToId","name").sort({dueAt:1}).lean()]);return{ok:true,assignments,followUps}}
+export async function updateLeadFollowUp(formData:FormData){const admin=await requireCrmAccess();const value=z.object({id,assignedToId:id,dueAt:z.string().min(1),priority:z.enum(["LOW","NORMAL","HIGH"]),description:z.string().max(4000).optional(),status:z.enum(["OPEN","COMPLETED","CANCELLED"])}).safeParse(Object.fromEntries(formData));if(!value.success)return{error:"Invalid follow-up update."};await connectToDatabase();const item=await LeadFollowUp.findByIdAndUpdate(value.data.id,{$set:{...value.data,dueAt:new Date(value.data.dueAt)}},{new:true});if(!item)return{error:"Follow-up is unavailable."};await LeadActivity.create({leadId:item.leadId,actorId:admin.id,action:`Follow-up ${value.data.status.toLowerCase()}`,metadata:{followUpId:value.data.id}});await audit(admin.id,"lead_follow_up.updated","LeadFollowUp",value.data.id);return{ok:true}}
 
 export async function updateLeadStatus(formData: FormData) {
   const admin = await requireAdmin();
@@ -202,7 +213,7 @@ const lenderInput = z.object({
     .string()
     .trim()
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and hyphens only."),
-  lenderType: z.enum(["BANK", "NBFC", "INTERNATIONAL"]),
+  lenderType: z.enum(["BANK", "NBFC", "INTERNATIONAL", "OTHER"]),
   displayOrder: z.coerce.number().int("Display order must be a whole number.").min(0, "Display order cannot be negative.").max(9999),
   published: z.enum(["true", "false"]),
   securedLoan: z.string().trim().min(1, "Enter secured loan details or Not available.").max(120),
@@ -222,7 +233,7 @@ const lenderInput = z.object({
 export async function saveLender(formData: FormData) {
   const admin = await requireAdmin();
   const raw = Object.fromEntries(formData);
-  if (raw.intent === "save-draft") raw.published = "false";
+  if (raw.intent === "save-draft") { raw.published = "false"; raw.slug ||= String(raw.name || "draft-lender").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "draft-lender"; raw.displayOrder ||= "0"; raw.securedLoan ||= "Not available"; raw.unsecuredLoan ||= "Not available"; raw.securedRate ||= "Not available"; raw.unsecuredRate ||= "Not available"; raw.moratorium ||= ""; raw.tenure ||= ""; raw.foreclosure ||= ""; raw.processingFee ||= ""; raw.collateralAvailable ||= "false"; raw.nonCollateralAvailable ||= "false"; raw.applicationUrl ||= ""; }
   if (raw.intent === "publish") raw.published = "true";
   const value = lenderInput.safeParse(raw);
   if (!value.success)
@@ -287,7 +298,7 @@ export async function saveLender(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/lenders");
   revalidatePath("/compare-all-lenders.html");
-  return { ok: true };
+  return { ok: true, id: String(lender._id), lender };
 }
 export async function deleteLender(formData: FormData) {
   const admin = await requireRole("SUPER_ADMIN");
@@ -469,6 +480,7 @@ export async function updateApplicationStatus(formData: FormData) {
   );
   revalidatePath("/admin/applications");
 }
+export async function deleteApplication(formData: FormData) { const admin=await requireAdmin();const value=z.object({id,confirm:z.literal("DELETE")}).safeParse(Object.fromEntries(formData));if(!value.success)return{error:"Unable to confirm deletion."};await connectToDatabase();const application=await Application.findByIdAndDelete(value.data.id);if(!application)return{error:"Application is unavailable."};await LeadActivity.create({leadId:application.leadId,actorId:admin.id,action:"Application deleted",metadata:{applicationId:value.data.id}});await audit(admin.id,"application.deleted","Application",value.data.id);revalidatePath("/admin/applications");revalidatePath(`/admin/leads/${application.leadId}`);return{ok:true};}
 export async function mergeStudentProfiles(formData: FormData) {
   const admin = await requireRole("SUPER_ADMIN");
   const value = z
@@ -551,6 +563,18 @@ export async function unpublishBlog(formData: FormData) {
     { $set: { status: "DRAFT", updatedById: admin.id } },
   );
   await audit(admin.id, "blog.unpublished", "BlogPost", value.data);
+  revalidateBlogs();
+}
+export async function publishBlog(formData: FormData) {
+  const admin = await requireAdmin();
+  const value = id.safeParse(formData.get("id"));
+  if (!value.success) return;
+  await connectToDatabase();
+  await BlogPost.updateOne(
+    { _id: value.data, deletedAt: null, status: "DRAFT" },
+    { $set: { status: "PUBLISHED", publishedAt: new Date(), updatedById: admin.id } },
+  );
+  await audit(admin.id, "blog.published", "BlogPost", value.data);
   revalidateBlogs();
 }
 const blogInput = z.object({
