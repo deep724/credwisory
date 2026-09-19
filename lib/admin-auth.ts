@@ -5,12 +5,14 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import { connectToDatabase } from "@/lib/mongodb";
 import { AdminUser } from "@/lib/models";
+import { adminJwtSecretStatus } from "@/lib/runtime-config";
 
 const cookieName = "cw_admin";
 function secret() {
   const value = process.env.ADMIN_JWT_SECRET;
-  if (!value && process.env.NODE_ENV === "production") {
-    throw new Error("ADMIN_JWT_SECRET must be configured in production.");
+  const status = adminJwtSecretStatus();
+  if (process.env.NODE_ENV === "production" && status !== "configured") {
+    throw new Error(`ADMIN_JWT_SECRET is ${status} in production.`);
   }
   return new TextEncoder().encode(value || "local-development-secret-not-for-production");
 }

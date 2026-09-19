@@ -5,6 +5,9 @@ import { connectToDatabase, logDatabaseError } from "@/lib/mongodb";
 import { AdminUser, AuditLog } from "@/lib/models";
 import { adminCookie, adminCookieOptions, createAdminToken } from "@/lib/admin-auth";
 import { allowRequest } from "@/lib/api";
+import { adminJwtSecretStatus } from "@/lib/runtime-config";
+
+export const runtime = "nodejs";
 
 const schema = z.object({ email: z.string().email(), password: z.string().min(12).max(128) });
 
@@ -74,7 +77,7 @@ export async function POST(request: Request) {
     logAuth("login_failed", {
       reason: "token_creation_error",
       nodeEnv: process.env.NODE_ENV ?? "unset",
-      adminJwtSecretConfigured: Boolean(process.env.ADMIN_JWT_SECRET),
+      adminJwtSecretStatus: adminJwtSecretStatus(),
     });
     return NextResponse.json({ error: "Sign-in is temporarily unavailable. Please try again." }, { status: 503 });
   }

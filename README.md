@@ -41,7 +41,7 @@ Set these in the Vercel project that owns the deployed domain, with the **Produc
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `MONGODB_URI` | Yes | Atlas URI for the intended `crd` database; it must contain the production admin account. |
-| `ADMIN_JWT_SECRET` | Yes | A newly generated random secret (for example, `openssl rand -base64 48`). Keep its value stable after deployment. |
+| `ADMIN_JWT_SECRET` | Yes | A newly generated random secret of at least 32 bytes (for example, `openssl rand -base64 48`). Keep its value stable after deployment. |
 | `CRON_SECRET` | Yes when `/api/health` cron is enabled | Separate random bearer secret for the health cron. |
 | `ADMIN_COOKIE_SECURE` | No | Leave unset on Vercel; production cookies are always Secure. |
 | `MONGODB_IP_FAMILY` | No | This app currently does not consume it. |

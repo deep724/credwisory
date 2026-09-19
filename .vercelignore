@@ -1,0 +1,5 @@
+# Secrets are supplied through Vercel Environment Variables. Never upload a
+# developer's local environment file as a deployment input.
+.env
+.env.*
+!.env.example
