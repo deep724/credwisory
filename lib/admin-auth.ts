@@ -43,15 +43,16 @@ export async function requireRole(...allowed: string[]) {
 export const adminCookie = { name: cookieName, options: { httpOnly: true, sameSite: "lax" as const, secure: false, path: "/", maxAge: 60 * 60 * 8 } };
 
 /**
- * Cookies must only be marked Secure when the browser is actually using HTTPS.
- * `next start` runs in production mode locally over HTTP, where a Secure cookie
- * is silently discarded and makes an otherwise successful login look broken.
+ * Production deployments must always use HTTPS. Vercel terminates TLS before
+ * invoking the function, so trusting only a proxy header could accidentally
+ * issue a non-Secure authentication cookie when that header is unavailable.
+ * Local HTTP development keeps working because NODE_ENV is development.
  */
 export function adminCookieOptions(request: Request) {
   const forwardedProtocol = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
   const isHttps = forwardedProtocol === "https" || new URL(request.url).protocol === "https:";
   return {
     ...adminCookie.options,
-    secure: process.env.ADMIN_COOKIE_SECURE === "true" || isHttps,
+    secure: process.env.NODE_ENV === "production" || process.env.ADMIN_COOKIE_SECURE === "true" || isHttps,
   };
 }

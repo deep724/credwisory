@@ -26,13 +26,30 @@ New leads are linked to a `studentprofiles` record only by normalized email and/
 
 ### Daily database heartbeat
 
-`vercel.json` schedules `/api/health` every day at 03:00 UTC. In Vercel, add `MONGODB_URI`, `ADMIN_JWT_SECRET`, and `CRON_SECRET` to the Production environment, then deploy; Vercel Cron will send the configured request to the protected endpoint. If your scheduler does not support the authorization header, configure an equivalent scheduled job that does. A heartbeat cannot override a database provider's enforced free-tier auto-pause policy; it only keeps an application connection active where the provider supports that behavior.
+`vercel.json` schedules `/api/health` every day at 03:00 UTC. In Vercel, add `MONGODB_URI`, `ADMIN_JWT_SECRET`, and `CRON_SECRET` to the **Production** environment, then deploy; Vercel Cron will send the configured request to the protected endpoint. `ADMIN_JWT_SECRET` must be a stable, high-entropy secret shared by every production deployment; changing it intentionally invalidates all existing admin sessions. Do not add `NEXTAUTH_SECRET`: this application does not use NextAuth. If your scheduler does not support the authorization header, configure an equivalent scheduled job that does. A heartbeat cannot override a database provider's enforced free-tier auto-pause policy; it only keeps an application connection active where the provider supports that behavior.
 
 ## Production security and HTTPS
 
 The application sends a restrictive Content Security Policy, HSTS (in production), anti-framing, MIME-sniffing, referrer, and permissions-policy headers. Authentication uses an HTTP-only, SameSite cookie and requires `ADMIN_JWT_SECRET` in production. Login and public APIs have throttling, form submissions use Zod validation plus a honeypot, and rich blog HTML is sanitized on the server.
 
 Deploy behind a platform/load balancer that terminates TLS with a valid certificate, configure the canonical domain as `https://your-domain.example`, and redirect HTTP traffic to HTTPS at that edge. Do not set `ADMIN_COOKIE_SECURE=false` in production. A browser showing **Not secure** on `localhost` is expected when local HTTPS has not been configured; it is not solved by application code or a self-signed certificate alone. Ensure all third-party resources and form/API endpoints use HTTPS to avoid mixed content.
+
+### Vercel production variables
+
+Set these in the Vercel project that owns the deployed domain, with the **Production** scope (add Preview only when preview deployments need the feature):
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `MONGODB_URI` | Yes | Atlas URI for the intended `crd` database; it must contain the production admin account. |
+| `ADMIN_JWT_SECRET` | Yes | A newly generated random secret (for example, `openssl rand -base64 48`). Keep its value stable after deployment. |
+| `CRON_SECRET` | Yes when `/api/health` cron is enabled | Separate random bearer secret for the health cron. |
+| `ADMIN_COOKIE_SECURE` | No | Leave unset on Vercel; production cookies are always Secure. |
+| `MONGODB_IP_FAMILY` | No | This app currently does not consume it. |
+| `ADMIN_SEED_EMAIL`, `ADMIN_SEED_PASSWORD` | Only to run the seed script | Seed-time values, not required by sign-in at runtime. Never use a default password in production. |
+
+Email-provider variables (`RESEND_API_KEY`, `EMAIL_FROM`, `NOTIFICATION_EMAIL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, and `MAIL_FROM`) are required only for the email features configured in your deployment; they do not affect admin sign-in.
+
+Do not configure `NODE_ENV` in Vercel. Vercel/Next.js set it to `production` for production deployments; a manually imported development value can make security behavior inconsistent.
 
 Visitor analytics are opt-in. The consent banner links to `/privacy`; only after acceptance does `/api/analytics` persist an anonymous ID, pages, and timing. Leads link to that anonymous session only where the visitor has consented. Run `npm run db:seed` against the configured MongoDB database before enabling the app for users.
 
