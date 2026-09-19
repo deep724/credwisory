@@ -7,6 +7,7 @@ import { z } from "zod";
 import { requireAdmin, requireRole } from "@/lib/admin-auth";
 import { isValidBlogImageValue, validBlogImageMessage } from "@/lib/blog-images";
 import { isValidLenderLogo, lenderLogoMessage } from "@/lib/lender-images";
+import { adminUserInput, persistAdminUser } from "@/lib/admin-user-service";
 import { connectToDatabase } from "@/lib/mongodb";
 import {
   AdminUser,
@@ -316,32 +317,34 @@ export async function deleteLender(formData: FormData) {
 }
 export async function createAdminUser(formData: FormData) {
   const admin = await requireRole("SUPER_ADMIN");
-  const value = z
-    .object({
-      name: z.string().trim().min(2).max(120),
-      email: z.string().trim().email().max(254),
-      password: z.string().min(12).max(128),
-      role: z.enum(["SUPER_ADMIN", "STAFF"]),
-    })
-    .safeParse(Object.fromEntries(formData));
-  if (!value.success) return;
-  await connectToDatabase();
-  const role = await Role.findOne({ key: value.data.role });
-  if (!role) return;
-  const exists = await AdminUser.exists({
-    email: value.data.email.toLowerCase(),
-  });
-  if (exists) return;
-  const user = await AdminUser.create({
-    name: value.data.name,
-    email: value.data.email.toLowerCase(),
-    passwordHash: await bcrypt.hash(value.data.password, 12),
-    roleId: role._id,
-    active: true,
-    mustChangePassword: true,
-  });
-  await audit(admin.id, "admin_user.created", "AdminUser", String(user._id));
-  revalidatePath("/admin/users");
+  const value = adminUserInput.safeParse(Object.fromEntries(formData));
+  if (!value.success) return { error: "Enter a name, valid email, password of at least 12 characters, and role." };
+
+  try {
+    await connectToDatabase();
+    const result = await persistAdminUser(value.data, await bcrypt.hash(value.data.password, 12), {
+      ensureRole: async (key) => (await Role.findOneAndUpdate(
+        { key },
+        { $setOnInsert: { name: key === "SUPER_ADMIN" ? "Super Admin" : "Staff" } },
+        { upsert: true, new: true },
+      ).lean()) as { _id: unknown } | null,
+      emailExists: async (email) => Boolean(await AdminUser.exists({ email })),
+      create: async (user) => AdminUser.create(user),
+    });
+    if (!result.ok) return result;
+    try {
+      await audit(admin.id, "admin_user.created", "AdminUser", result.id);
+    } catch {
+      console.error("[admin-users] audit log failed after admin creation");
+    }
+    revalidatePath("/admin/users");
+    return result;
+  } catch (error) {
+    const duplicate = typeof error === "object" && error !== null && "code" in error && (error as { code?: unknown }).code === 11000;
+    if (duplicate) return { error: "An admin user with this email already exists." };
+    console.error("[admin-users] create failed", { reason: error instanceof Error ? error.name : "unknown" });
+    return { error: "We couldn't create this admin user. Please try again." };
+  }
 }
 export async function changeOwnPassword(formData: FormData) {
   const admin = await requireAdmin({ allowPasswordChange: true });

@@ -1,13 +1,15 @@
 import { AdminShell } from "@/components/admin-shell";
 import { AdminIconSubmitButton } from "@/components/admin-icon-submit-button";
 import { AdminUserCreateDialog } from "@/components/admin-user-create-dialog";
+import { AdminUserDeleteAction } from "@/components/admin-user-delete-action";
 import { updateAdminUser } from "@/app/admin/actions";
 import { requireRole } from "@/lib/admin-auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import { AdminUser } from "@/lib/models";
 
-export default async function Users() {
+export default async function Users({ searchParams }: { searchParams: Promise<{ notice?: string }> }) {
   const admin = await requireRole("SUPER_ADMIN");
+  const query = await searchParams;
   await connectToDatabase();
   const users = await AdminUser.find().select("name email roleId active mustChangePassword lastLoginAt createdAt").populate("roleId", "name key").lean();
   const role = admin.roleId as unknown as { name?: string } | null;
@@ -17,6 +19,7 @@ export default async function Users() {
   const activeUsers = users.filter((user) => user.active).length;
   return <AdminShell name={admin.name} role={role?.name || "Super Admin"}>
     <div className="cw-admin-page-heading cw-admin-users-heading"><div><h1>Admin users</h1><p className="cw-admin-kicker">Manage trusted team access without exposing passwords or private account details.</p></div><AdminUserCreateDialog /></div>
+    {query.notice === "admin-deleted" ? <p className="cw-admin-success" role="status">Admin account deleted successfully.</p> : null}
     <section className="cw-admin-grid cw-admin-users-stats" aria-label="Admin user summary"><Metric icon="users" label="Total admins" value={total} tone="teal" /><Metric icon="shield" label="Super admins" value={superAdmins} tone="navy" /><Metric icon="briefcase" label="Staff admins" value={staffAdmins} tone="amber" /><Metric icon="check" label="Active users" value={activeUsers} tone="green" /></section>
     <section className="cw-admin-panel cw-admin-users-panel"><div className="cw-admin-panel-head"><div><p className="cw-admin-eyebrow">Team access</p><h2>People with admin access</h2><p>Change a teammate’s access level or account status here. Your own Super Admin account is protected.</p></div></div><div className="cw-admin-table-wrap"><table className="cw-admin-users-table"><thead><tr><th>Account</th><th>Role / access</th><th>Status</th><th>Last active</th><th>Actions</th></tr></thead><tbody>
       {users.map((user) => {
@@ -29,7 +32,7 @@ export default async function Users() {
           <td data-label="Role / access"><div className="cw-admin-access-field"><span className={`cw-admin-role-badge ${assignedRole?.key === "SUPER_ADMIN" ? "is-super" : "is-staff"}`}>{assignedRole?.name || "Staff Admin"}</span>{!isSelf ? <select name="role" form={formId} defaultValue={assignedRole?.key || "STAFF"} aria-label={`Role for ${user.name}`}><option value="STAFF">Staff Admin</option><option value="SUPER_ADMIN">Super Admin</option></select> : null}</div></td>
           <td data-label="Status"><div className="cw-admin-access-field"><span className={`cw-admin-user-status is-${status.toLowerCase()}`}>{status}</span>{!isSelf ? <select name="active" form={formId} defaultValue={user.active ? "true" : "false"} aria-label={`Account status for ${user.name}`}><option value="true">Active</option><option value="false">Suspended</option></select> : <small className="cw-admin-protected"><LockIcon />Protected account</small>}</div></td>
           <td data-label="Last active"><div className="cw-admin-last-active"><span className="cw-admin-date">{formatDate(user.lastLoginAt)}</span>{!user.lastLoginAt ? <small>Not yet signed in</small> : null}</div></td>
-          <td data-label="Actions" className="cw-admin-icon-actions cw-admin-user-actions">{!isSelf ? <form id={formId} action={updateAdminUser}><input type="hidden" name="id" value={String(user._id)} /><AdminIconSubmitButton className="cw-admin-icon-action is-edit" label={`Update access for ${user.name}`} tooltip="Update access" pendingLabel="Updating"><UpdateIcon /></AdminIconSubmitButton></form> : <span className="cw-admin-no-action" aria-label="Protected account" data-tooltip="Protected account"><LockIcon /></span>}</td>
+          <td data-label="Actions" className="cw-admin-icon-actions cw-admin-user-actions">{!isSelf ? <><form id={formId} action={updateAdminUser}><input type="hidden" name="id" value={String(user._id)} /><AdminIconSubmitButton className="cw-admin-icon-action is-edit" label={`Update access for ${user.name}`} tooltip="Update access" pendingLabel="Updating"><UpdateIcon /></AdminIconSubmitButton></form>{assignedRole?.key === "STAFF" ? <AdminUserDeleteAction id={String(user._id)} name={user.name} /> : null}</> : <span className="cw-admin-no-action" aria-label="Protected account" data-tooltip="Protected account"><LockIcon /></span>}</td>
         </tr>;
       })}
     </tbody></table></div></section>

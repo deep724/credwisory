@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test:admin-users": "tsx --test tests/admin-user-service.test.ts tests/admin-user-deletion.test.ts",
     "db:seed": "tsx scripts/seed-mongodb.ts",
     "db:backfill-students": "tsx scripts/backfill-student-profiles.ts",
     "db:backfill-lead-lender-assignments": "tsx scripts/backfill-lead-lender-assignments.ts",

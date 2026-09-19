@@ -11,7 +11,7 @@ export function AdminUserCreateDialog() {
   const [error, setError] = useState("");
   async function submit(formData: FormData) {
     setPending(true); setError("");
-    try { await createAdminUser(formData); dialogRef.current?.close(); router.refresh(); }
+    try { const result = await createAdminUser(formData); if (result && "ok" in result && result.ok) { dialogRef.current?.close(); router.refresh(); } else setError(result?.error || "We couldn't create this admin user. Please check the details and try again."); }
     catch { setError("We couldn't create this admin user. Please check the details and try again."); }
     finally { setPending(false); }
   }
