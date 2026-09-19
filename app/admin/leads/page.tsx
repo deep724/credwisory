@@ -189,7 +189,7 @@ export default async function Leads({
                 <th>Student</th>
                 <th>Contact</th>
                 <th>Enquiry type</th>
-                <th>Assigned lender</th>
+                <th>Assigned Admin</th>
                 <th>Current status</th>
                 <th>Created</th>
                 <th>Actions</th>
@@ -205,7 +205,6 @@ export default async function Leads({
                   const assigned = lead.assignedToId as unknown as {
                     name?: string;
                   } | null;
-                  const lender = lead.lenderId as unknown as { name?: string } | null;
                   return (
                     <tr key={String(lead._id)}>
                       <td data-label="Student" className="cw-lead-student">
@@ -226,13 +225,16 @@ export default async function Leads({
                           <small>Profile pending backfill</small>
                         )}
                       </td>
-                      <td data-label="Contact" className="cw-lead-contact"><small>{lead.phone || "No phone"}</small><small title={lead.email || "No email"}>{lead.email || "No email"}</small></td>
+                      <td data-label="Contact" className="cw-lead-contact">
+                        <span className="cw-lead-contact-item"><PhoneIcon />{lead.phone || "No phone"}</span>
+                        <span className="cw-lead-contact-item" title={lead.email || "No email"}><MailIcon />{lead.email || "No email"}</span>
+                      </td>
                       <td data-label="Enquiry type">
                         <span className="cw-admin-type">
                           {label(lead.type)}
                         </span>
                       </td>
-                      <td data-label="Assigned lender" className="cw-lead-lender" title={lender?.name || "Unassigned"}>{lender?.name || "Unassigned"}</td>
+                      <td data-label="Assigned Admin" className="cw-lead-lender" title={assigned?.name || "Unassigned"}>{assigned?.name || "Unassigned"}</td>
                       <td data-label="Current status">
                         <LeadStatusControl
                           id={String(lead._id)}
@@ -268,6 +270,14 @@ export default async function Leads({
 
 function PaginationLink({ disabled, href, children }: { disabled: boolean; href: string; children: ReactNode }) {
   return disabled ? <span aria-disabled="true" className="disabled">{children}</span> : <Link href={href}>{children}</Link>;
+}
+
+function PhoneIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5 9 6 7.5 8.5a14 14 0 0 0 8 8L18 15l2.5 2.5-2 3a2 2 0 0 1-2.1.9C8.7 19.7 4.3 15.3 2.6 7.6a2 2 0 0 1 .9-2.1l3-2Z" /></svg>;
+}
+
+function MailIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m4 7 8 6 8-6" /></svg>;
 }
 
 function sourceLabel(value?: string) {

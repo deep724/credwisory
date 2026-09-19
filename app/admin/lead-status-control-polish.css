@@ -24,13 +24,14 @@
 @media (max-width: 560px) {
   .cw-leads-table .cw-status-control {
     flex-direction: column !important;
-    align-items: flex-end !important;
+    align-items: stretch !important;
   }
 
   .cw-leads-table .cw-status-control select,
   .cw-leads-table .cw-status-control .cw-lead-status-save {
-    width: 132px !important;
-    flex-basis: 36px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    flex-basis: 40px !important;
   }
 
   .cw-leads-table .cw-status-control .cw-lead-status-save span {
