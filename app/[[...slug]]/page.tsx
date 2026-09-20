@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { LegacyRuntime } from "@/components/legacy-runtime";
 import { SiteFooter } from "@/components/site-footer";
+import { HomepageTestimonials } from "@/components/homepage-testimonials";
 import { loadLegacyPage, pathnameToLegacyFile } from "@/lib/legacy";
 
 type Props = { params: Promise<{ slug?: string[] }> };
@@ -37,7 +38,10 @@ export default async function Page({ params }: Props) {
       : pathnameToLegacyFile(slug);
   const page = await loadLegacyPage(filename);
   if (!page) notFound();
-  const stylesheets = filename === "compare-all-lenders.html" ? [...page.stylesheets, "/compare-selection-fix.css"] : page.stylesheets;
+  const stylesheets = [
+    ...(filename === "compare-all-lenders.html" ? [...page.stylesheets, "/compare-selection-fix.css"] : page.stylesheets),
+    ...(filename === "index.html" ? ["/shared-calculator.css"] : []),
+  ];
   // Tailwind is compiled from the preserved legacy HTML at build time. Do not
   // execute the former CDN loader after hydration.
   const scripts = page.scripts.filter(
@@ -63,7 +67,7 @@ export default async function Page({ params }: Props) {
           /\bsrc=["'][^"']+/.test(script) && !/site-header\.js/.test(script),
       ),
     );
-    scripts.push('<script src="/homepage-calculators.js"></script>');
+    scripts.push('<script src="/shared-calculator.js"></script>');
   }
   if (
     [
@@ -122,6 +126,7 @@ export default async function Page({ params }: Props) {
         <link key={href} rel="stylesheet" href={href} />
       ))}
       <LegacyRuntime body={page.body} scripts={scripts} />
+      {filename === "index.html" ? <HomepageTestimonials /> : null}
       <SiteFooter />
     </>
   );

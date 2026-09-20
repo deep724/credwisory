@@ -49,8 +49,8 @@ const groups = [
   [
     "Contact",
     [
-      ["Talk to an expert", "/contact?tab=expert"],
-      ["Work with Credwisory", "/contact?tab=credwisory"],
+      ["Talk to an expert", "/contact#talk-to-expert"],
+      ["Work with Credwisory", "/contact#work-with-credwisory"],
       ["Submit Your Resume", "/contact#submit-resume"],
     ],
   ],
@@ -69,6 +69,7 @@ function SiteHeaderContent() {
   const searchParams = useSearchParams();
   const [open, setOpen] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [locationHash, setLocationHash] = useState("");
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cancelClose = useCallback(() => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
@@ -106,6 +107,17 @@ function SiteHeaderContent() {
       cancelClose();
     };
   }, [close, cancelClose]);
+
+  useEffect(() => {
+    const syncHash = () => setLocationHash(window.location.hash);
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+    window.addEventListener("popstate", syncHash);
+    return () => {
+      window.removeEventListener("hashchange", syncHash);
+      window.removeEventListener("popstate", syncHash);
+    };
+  }, [pathname]);
 
   const menu = (
     name: string,
@@ -171,8 +183,16 @@ function SiteHeaderContent() {
         </div>
         <div className={`cw-panel${isOpen ? " open" : ""}`} id={menuId}>
           {links.map(([label, href]) => {
-            const [hrefPath, hrefQuery] = href.split("?");
-            const active = pathname === hrefPath && (!hrefQuery || searchParams.toString() === hrefQuery);
+            const [hrefWithoutHash, hrefHash] = href.split("#");
+            const [hrefPath, hrefQuery] = hrefWithoutHash.split("?");
+            const legacyContactHash = searchParams.get("tab") === "credwisory"
+              ? "#work-with-credwisory"
+              : searchParams.get("tab") === "resume"
+                ? "#submit-resume"
+                : "#talk-to-expert";
+            const active = name === "Contact"
+              ? pathname === hrefPath && (locationHash || legacyContactHash) === `#${hrefHash}`
+              : pathname === hrefPath && (!hrefQuery || searchParams.toString() === hrefQuery);
             return href.startsWith("/") ? (
               <Link
                 key={href}

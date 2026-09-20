@@ -1,4 +1,14 @@
 "use client";
-import { useState } from "react";
+
 import { useRouter } from "next/navigation";
-export function AdminUserDeleteAction({id,name}:{id:string;name:string}){const [open,setOpen]=useState(false),[pending,setPending]=useState(false),[error,setError]=useState(""),[confirmation,setConfirmation]=useState("");const router=useRouter();async function remove(){setPending(true);setError("");try{const response=await fetch(`/api/admin/users/${id}`,{method:"DELETE",credentials:"same-origin",headers:{"content-type":"application/json"},body:JSON.stringify({confirmation})});const result=await response.json().catch(()=>null);if(!response.ok||!result?.ok){setError(typeof result?.error==="string"?result.error:"We couldn't delete this admin account.");return}setOpen(false);router.push("/admin/users?notice=admin-deleted");router.refresh()}catch{setError("We couldn't delete this admin account.")}finally{setPending(false)}}return <><button type="button" className="cw-admin-user-delete" aria-label="Delete" data-tooltip="Delete" onClick={()=>setOpen(true)}>🗑<span className="cw-sr-only">Delete</span></button>{open?<div className="cw-admin-confirm-backdrop"><section className="cw-admin-confirm" role="dialog" aria-modal="true" aria-labelledby={`delete-admin-${id}`}><span className="cw-admin-confirm-icon" aria-hidden="true">🗑</span><h2 id={`delete-admin-${id}`}>Delete this user?</h2><p>This action may not be reversible. Type <strong>DELETE</strong> or the account name to continue.</p><label className="cw-admin-confirm-label">Confirmation<input value={confirmation} onChange={event=>setConfirmation(event.target.value)} autoComplete="off"/></label>{error?<p className="cw-admin-error" role="alert">{error}</p>:null}<div><button type="button" className="cw-admin-reset" disabled={pending} onClick={()=>setOpen(false)}>Cancel</button><button type="button" className="cw-admin-danger" disabled={pending||(confirmation!=="DELETE"&&confirmation!==name)} onClick={()=>void remove()}>{pending?"Deleting…":"Delete"}</button></div></section></div>:null}</>}
+import { AdminDeleteConfirmation } from "@/components/admin-delete-confirmation";
+
+export function AdminUserDeleteAction({ id, name }: { id: string; name: string }) {
+  const router = useRouter();
+  return <AdminDeleteConfirmation title="Delete staff admin?" description={<>This permanently removes the Staff Admin account for <b>{name}</b>. Their current password is never shown or retained.</>} triggerLabel={`Delete Staff Admin ${name}`} successMessage="Staff Admin account deleted successfully." confirmationValues={["DELETE", name]} confirmationHint={<>Type <b>DELETE</b> or the account name to continue.</>} triggerClassName="cw-admin-user-delete cw-admin-icon-action is-delete" onSuccess={() => router.refresh()} onConfirm={async () => {
+    const response = await fetch(`/api/admin/users/${id}`, { method: "DELETE", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ confirmation: "DELETE" }) });
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !result?.ok) return { error: typeof result?.error === "string" ? result.error : "We couldn't delete this admin account." };
+    return { ok: true };
+  }} />;
+}

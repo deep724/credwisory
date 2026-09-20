@@ -7,7 +7,7 @@ import "./dashboard-polish.css";
 import "./icon-actions.css";
 import "./content-management-polish.css";
 import "./users-polish.css";
-import "./lender-delete-dialog.css";
+import "./admin-delete-confirmation.css";
 import "./lender-editor-polish.css";
 import "./applications-polish.css";
 import "./student-profile-polish.css";
@@ -20,6 +20,8 @@ import "./blog-editor-image-manager.css";
 import "./blog-editor-buttons.css";
 import "./blog-editor-content-polish.css";
 import "./submission-leads.css";
+import "./referrals-polish.css";
+import "./settings-polish.css";
 import { AdminActionTooltips } from "@/components/admin-action-tooltips";
 export default function AdminLayout({
   children,

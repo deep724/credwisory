@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { LenderLogo } from "@/components/lender-logo";
 import { useRouter } from "next/navigation";
 import { archiveLender, deleteLender, saveLender } from "@/app/admin/actions";
+import { AdminDeleteConfirmation } from "@/components/admin-delete-confirmation";
 import {
   isValidLenderLogo,
   LENDER_LOGO_ACCEPT,
@@ -228,7 +229,7 @@ function LenderTableActions({ lender, onEdit, completed }: { lender: Lender; onE
   return <><div className="cw-admin-icon-actions" aria-label={`Actions for ${lender.name}`}>
     <button type="button" className="cw-admin-icon-action is-edit" aria-label={`Edit lender ${lender.name}`} data-tooltip="Edit lender" title="Edit lender" onClick={onEdit} disabled={Boolean(pending)}><ActionIcon name="edit" /></button>
     {!lender.archivedAt ? <button type="button" className="cw-admin-icon-action is-archive" aria-label={`Archive lender ${lender.name}`} data-tooltip="Archive lender" title="Archive lender" onClick={() => void archive()} disabled={Boolean(pending)}>{pending === "archive" ? <span className="cw-admin-icon-spinner" aria-label="Archiving" /> : <ActionIcon name="archive" />}</button> : null}
-    <button type="button" className="cw-admin-icon-action is-delete" aria-label={`Delete lender ${lender.name}`} data-tooltip="Delete lender" title="Delete lender" onClick={() => { setError(""); deleteDialog.current?.showModal(); }} disabled={Boolean(pending)}><ActionIcon name="delete" /></button>
+    <AdminDeleteConfirmation title="Delete lender?" description={<>This permanently deletes <b>{lender.name}</b> and removes its public listing.</>} triggerLabel={`Delete lender ${lender.name}`} successMessage="Lender deleted successfully." onSuccess={() => completed(`${lender.name} deleted successfully.`)} onConfirm={async () => { const data = new FormData(); data.set("id", lender._id); data.set("confirm", "DELETE"); await deleteLender(data); return { ok: true }; }} />
   </div><dialog ref={deleteDialog} className="cw-admin-dialog cw-admin-delete-dialog" onCancel={(event) => { if (pending) event.preventDefault(); }} aria-labelledby={`delete-lender-${lender._id}`} aria-describedby={`delete-lender-warning-${lender._id}`}><div className="cw-admin-dialog-inner cw-admin-delete-dialog-inner"><div className="cw-admin-delete-title-row"><span className="cw-admin-delete-title-icon" aria-hidden="true"><ActionIcon name="delete" /></span><div><p className="cw-admin-eyebrow">Delete lender</p><h2 id={`delete-lender-${lender._id}`}>Delete “{lender.name}”?</h2></div></div><p id={`delete-lender-warning-${lender._id}`} className="cw-admin-delete-warning">This permanently deletes this lender and its public listing. This cannot be undone.</p>{error ? <p className="cw-admin-error" role="alert">{error}</p> : null}<div className="cw-admin-dialog-actions cw-admin-delete-dialog-actions"><button type="button" className="cw-admin-delete-cancel" onClick={() => deleteDialog.current?.close()} disabled={Boolean(pending)}>Cancel</button><button type="button" className="cw-admin-danger cw-admin-delete-confirm" onClick={() => void remove()} disabled={Boolean(pending)}>{pending === "delete" ? <><span className="cw-admin-icon-spinner" aria-hidden="true" />Deleting…</> : <><ActionIcon name="delete" />Delete permanently</>}</button></div></div></dialog></>;
 }
 

@@ -1,3 +1,27 @@
-import { AdminShell } from "@/components/admin-shell";import { updateReferralStatus } from "@/app/admin/actions";import { requireAdmin } from "@/lib/admin-auth";import { connectToDatabase } from "@/lib/mongodb";import { ReferralLead } from "@/lib/models";
+import { AdminShell } from "@/components/admin-shell";
+import { ReferralLeadsManager } from "@/components/referral-leads-manager";
+import { requireAdmin } from "@/lib/admin-auth";
+import { connectToDatabase } from "@/lib/mongodb";
+import { ReferralLead } from "@/lib/models";
 const statuses=["NEW","CONTACTED","IN_PROGRESS","CONVERTED","REJECTED"];
-export default async function Referrals({searchParams}:{searchParams:Promise<{status?:string;q?:string}>}){const admin=await requireAdmin();const q=await searchParams;await connectToDatabase();const filter:Record<string,unknown>={};if(q.status&&statuses.includes(q.status))filter.status=q.status;if(q.q){const e=q.q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");filter.$or=[{referrerName:{$regex:e,$options:"i"}},{referredName:{$regex:e,$options:"i"}},{referredPhone:{$regex:e}}]}const leads=await ReferralLead.find(filter).sort({createdAt:-1}).lean() as unknown as Array<{_id:unknown;referrerName:string;referrerPhone:string;referredName:string;referredPhone:string;code:string;status:string;createdAt:Date}>;const role=admin.roleId as unknown as {name?:string}|null;return <AdminShell name={admin.name} role={role?.name||"Admin"}><h1>Referral Leads</h1><form className="cw-admin-toolbar"><input name="q" placeholder="Search name or mobile" defaultValue={q.q}/><select name="status" defaultValue={q.status||""}><option value="">All statuses</option>{statuses.map(x=><option key={x}>{x}</option>)}</select><button className="cw-admin-primary">Filter</button></form><section className="cw-admin-panel"><div className="cw-admin-table-wrap"><table><thead><tr><th>Referrer</th><th>Referred person</th><th>Code</th><th>Status</th><th>Submitted</th></tr></thead><tbody>{leads.map(x=><tr key={String(x._id)}><td>{x.referrerName}<br/><small>{x.referrerPhone}</small></td><td>{x.referredName}<br/><small>{x.referredPhone}</small></td><td><code>{x.code}</code></td><td><form action={updateReferralStatus}><input type="hidden" name="id" value={String(x._id)}/><select name="status" defaultValue={x.status}>{statuses.map(s=><option key={s}>{s}</option>)}</select><button className="cw-admin-primary">Save</button></form></td><td>{x.createdAt.toLocaleString()}</td></tr>)}{!leads.length?<tr><td colSpan={5} className="cw-admin-empty">No referral leads found.</td></tr>:null}</tbody></table></div></section></AdminShell>}
+export default async function Referrals({searchParams}:{searchParams:Promise<{status?:string;q?:string}>}) {
+  const admin=await requireAdmin();
+  const q=await searchParams;
+  await connectToDatabase();
+  const filter:Record<string,unknown>={};
+  if(q.status&&statuses.includes(q.status)) filter.status=q.status;
+  if(q.q) {
+    const e=q.q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+    filter.$or=[{referrerName:{$regex:e,$options:"i"}},{referredName:{$regex:e,$options:"i"}},{referredPhone:{$regex:e}}];
+  }
+  const leads=await ReferralLead.find(filter).sort({createdAt:-1}).lean() as unknown as Array<{_id:unknown;referrerName:string;referrerPhone:string;referredName:string;referredPhone:string;code:string;status:string;createdAt:Date}>;
+  const role=admin.roleId as unknown as {name?:string;key?:string}|null;
+  const referrals=leads.map((lead)=>({
+    id:String(lead._id), referrerName:lead.referrerName, referrerPhone:lead.referrerPhone,
+    referredName:lead.referredName, referredPhone:lead.referredPhone, code:lead.code,
+    status:lead.status, createdAt:lead.createdAt.toISOString(),
+  }));
+  return <AdminShell name={admin.name} role={role?.name||"Admin"}>
+    <ReferralLeadsManager leads={referrals} query={{q:q.q||"",status:q.status||""}} canDelete={role?.key==="SUPER_ADMIN"}/>
+  </AdminShell>;
+}

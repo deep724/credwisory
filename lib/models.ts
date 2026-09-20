@@ -335,6 +335,32 @@ const auditLogSchema = new Schema(
 );
 auditLogSchema.index({ entityType: 1, entityId: 1 });
 
+// Small, allow-listed site settings. Values must always be validated by the
+// feature that owns the key before they are persisted or rendered.
+const siteSettingSchema = new Schema(
+  {
+    key: { type: String, required: true, unique: true, trim: true, maxlength: 100 },
+    value: { type: String, trim: true, maxlength: 10_000, default: "" },
+  },
+  schemaOptions,
+);
+const testimonialSchema = new Schema(
+  {
+    displayName: { type: String, required: true, trim: true, maxlength: 120 },
+    university: { type: String, trim: true, maxlength: 180 },
+    studyCountry: { type: String, trim: true, maxlength: 100 },
+    course: { type: String, trim: true, maxlength: 180 },
+    rating: { type: Number, required: true, min: 1, max: 5 },
+    text: { type: String, required: true, trim: true, maxlength: 3_000 },
+    photoUrl: { type: String, trim: true, maxlength: 1_000 },
+    videoUrl: { type: String, trim: true, maxlength: 1_000 },
+    consentConfirmed: { type: Boolean, required: true, default: false },
+    status: { type: String, enum: ["DRAFT", "PUBLISHED"], default: "DRAFT" },
+  },
+  schemaOptions,
+);
+testimonialSchema.index({ status: 1, createdAt: -1 });
+
 function registeredModel(name: string, schema: Schema): Model<any> {
   const existing = models[name] as Model<any> | undefined;
   // During Fast Refresh Mongoose retains compiled models. Recompile a stale
@@ -383,3 +409,5 @@ export const Application = registeredModel("Application", applicationSchema);
 export const Lender = registeredModel("Lender", lenderSchema);
 export const BlogPost = registeredModel("BlogPost", blogPostSchema);
 export const AuditLog = registeredModel("AuditLog", auditLogSchema);
+export const SiteSetting = registeredModel("SiteSetting", siteSettingSchema);
+export const Testimonial = registeredModel("Testimonial", testimonialSchema);
