@@ -42,6 +42,14 @@ export async function requireRole(...allowed: string[]) {
   if (!role?.key || !allowed.includes(role.key)) redirect("/admin");
   return admin;
 }
+/** API routes use explicit HTTP authorization responses instead of redirects. */
+export async function apiAdminRole(...allowed: string[]) {
+  const admin = await currentAdmin();
+  if (!admin) return { error: "Authentication is required.", status: 401 } as const;
+  const role = admin.roleId as unknown as { key?: string } | null;
+  if (!role?.key || !allowed.includes(role.key)) return { error: "You do not have permission to access this resource.", status: 403 } as const;
+  return { admin } as const;
+}
 export const adminCookie = { name: cookieName, options: { httpOnly: true, sameSite: "lax" as const, secure: false, path: "/", maxAge: 60 * 60 * 8 } };
 
 /**

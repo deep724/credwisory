@@ -8,6 +8,8 @@ import { useEffect, useState, type ReactNode } from "react";
 type NavIconName =
   | "overview"
   | "leads"
+  | "referrals"
+  | "resumes"
   | "applications"
   | "lenders"
   | "blogs"
@@ -22,11 +24,14 @@ const links: ReadonlyArray<{
 }> = [
   { label: "Overview", href: "/admin", icon: "overview" },
   { label: "Student leads", href: "/admin/leads", icon: "leads" },
+  { label: "Referral Leads", href: "/admin/referrals", icon: "referrals" },
+  { label: "Resume Leads", href: "/admin/resume-leads", icon: "resumes" },
   { label: "Applications", href: "/admin/applications", icon: "applications" },
   { label: "Lenders", href: "/admin/lenders", icon: "lenders" },
   { label: "Blogs", href: "/admin/blogs", icon: "blogs" },
   { label: "Users", href: "/admin/users", icon: "users", superAdmin: true },
   { label: "Audit trail", href: "/admin/audit", icon: "audit" },
+  { label: "My Account", href: "/admin/change-password", icon: "users" },
 ];
 
 function NavIcon({ name }: { name: NavIconName }) {
@@ -45,6 +50,8 @@ function NavIcon({ name }: { name: NavIconName }) {
         <path d="M5 20c.7-3.4 3-5 7-5s6.3 1.6 7 5" />
       </>
     ),
+    referrals: (<><circle cx="9" cy="8" r="3"/><path d="M3 20c.6-3.3 2.6-5 6-5 3.3 0 5.4 1.7 6 5M16 9h5M18.5 6.5v5"/></>),
+    resumes: (<><path d="M7 3h7l4 4v14H7z" /><path d="M14 3v5h5M10 12h4M10 16h4" /></>),
     applications: (
       <>
         <path d="M7 3h7l4 4v14H7z" />

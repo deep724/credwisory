@@ -189,6 +189,25 @@ const leadActivitySchema = new Schema(
 );
 leadNoteSchema.index({ leadId: 1, createdAt: -1 });
 leadActivitySchema.index({ leadId: 1, createdAt: -1 });
+const resumeLeadSchema = new Schema(
+  {
+    name: { type: String, required: true, trim: true, maxlength: 120 },
+    email: { type: String, required: true, lowercase: true, trim: true, maxlength: 254 },
+    phone: { type: String, required: true, trim: true, maxlength: 20 },
+    resumeFileName: { type: String, required: true, maxlength: 180 },
+    blobUrl: { type: String, required: true, maxlength: 1000 },
+    contentType: { type: String, required: true, maxlength: 120 },
+    size: { type: Number, required: true, min: 1 },
+  },
+  schemaOptions,
+);
+resumeLeadSchema.index({ createdAt: -1 });
+const referralLeadSchema = new Schema({
+  referrerName:{type:String,required:true,trim:true,maxlength:120},referrerPhone:{type:String,required:true,trim:true,maxlength:10},
+  referredName:{type:String,required:true,trim:true,maxlength:120},referredPhone:{type:String,required:true,trim:true,maxlength:10,unique:true},
+  code:{type:String,required:true,unique:true,index:true,maxlength:80},consentAt:{type:Date,required:true},status:{type:String,enum:["NEW","CONTACTED","IN_PROGRESS","CONVERTED","REJECTED"],default:"NEW"},statusChangedById:{type:Schema.Types.ObjectId,ref:"AdminUser"},statusChangedAt:Date,
+},schemaOptions);
+referralLeadSchema.index({status:1,createdAt:-1});
 const leadLenderAssignmentSchema = new Schema({ leadId:{type:Schema.Types.ObjectId,ref:"Lead",required:true,index:true}, lenderId:{type:Schema.Types.ObjectId,ref:"Lender",required:true,index:true}, status:{type:String,enum:["ASSIGNED","IN_REVIEW","APPLIED","APPROVED","REJECTED","ARCHIVED"],default:"ASSIGNED"}, assignedById:{type:Schema.Types.ObjectId,ref:"AdminUser",required:true}, notes:{type:String,maxlength:4000}, applicationId:{type:Schema.Types.ObjectId,ref:"Application"}, archivedAt:Date, archivedById:{type:Schema.Types.ObjectId,ref:"AdminUser"} },schemaOptions);
 leadLenderAssignmentSchema.index({leadId:1,lenderId:1},{unique:true,partialFilterExpression:{archivedAt:null}});
 leadLenderAssignmentSchema.index({leadId:1,status:1,createdAt:-1});
@@ -256,6 +275,14 @@ const lenderSchema = new Schema(
     tenure: String,
     eligibility: String,
     documents: String,
+    // Optional editorial copy for the lender-detail information card. This is
+    // deliberately separate from comparison data so no unverified loan facts
+    // need to be inferred on the public page.
+    infoSections: json,
+    sectionTitles: json,
+    contentStatus: { type: String, enum: ["DRAFT", "UNDER_REVIEW", "VERIFIED", "PUBLISHED"], default: "DRAFT" },
+    contentSources: json,
+    contentVerifiedAt: Date,
     applicationUrl: String,
     contactDetails: json,
     comparison: json,
@@ -348,6 +375,8 @@ export const StudentProfile = registeredModel(
 export const Lead = registeredModel("Lead", leadSchema);
 export const LeadNote = registeredModel("LeadNote", leadNoteSchema);
 export const LeadActivity = registeredModel("LeadActivity", leadActivitySchema);
+export const ResumeLead = registeredModel("ResumeLead", resumeLeadSchema);
+export const ReferralLead = registeredModel("ReferralLead", referralLeadSchema);
 export const LeadLenderAssignment = registeredModel("LeadLenderAssignment", leadLenderAssignmentSchema);
 export const LeadFollowUp = registeredModel("LeadFollowUp", leadFollowUpSchema);
 export const Application = registeredModel("Application", applicationSchema);

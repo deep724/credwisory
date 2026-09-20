@@ -9,18 +9,22 @@ export const runtime = "nodejs";
 
 const id = z.string().regex(/^[a-f\d]{24}$/i);
 
-export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const admin = await currentAdmin();
-  const actorRole = admin?.roleId as unknown as { key?: string } | null;
+  if (!admin) return NextResponse.json({ error: "Authentication is required." }, { status: 401 });
+  const actorRole = admin.roleId as unknown as { key?: string } | null;
   const { id: targetId } = await params;
   if (!id.safeParse(targetId).success) {
     return NextResponse.json({ error: "Invalid admin account." }, { status: 400 });
   }
 
+  const body = await request.json().catch(() => null);
+  const confirmation = body && typeof body === "object" && "confirmation" in body ? (body as { confirmation?: unknown }).confirmation : "";
   try {
     await connectToDatabase();
     const target = await AdminUser.findById(targetId).populate("roleId", "key").exec();
     if (!target) return NextResponse.json({ error: "This admin account no longer exists." }, { status: 404 });
+    if (confirmation !== "DELETE" && confirmation !== target.name) return NextResponse.json({ error: "Type DELETE or the account name to confirm." }, { status: 400 });
 
     const targetRole = target.roleId as unknown as { key?: string } | null;
     const authorization = authorizeAdminDeletion({

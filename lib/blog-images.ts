@@ -1,6 +1,6 @@
 export const BLOG_IMAGE_ACCEPT = "image/jpeg,image/png,image/webp";
-export const BLOG_IMAGE_MAX_BYTES = 4 * 1024 * 1024;
-export const BLOG_IMAGE_MAX_LABEL = "4 MB";
+export const BLOG_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+export const BLOG_IMAGE_MAX_LABEL = "5 MB";
 const imageExtension = /\.(?:jpe?g|png|webp)$/i;
 const localUploadPath = /^\/uploads\/blog\/[a-z0-9][a-z0-9_-]*\.(?:jpe?g|png|webp)$/i;
 

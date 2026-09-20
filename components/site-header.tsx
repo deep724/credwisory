@@ -51,6 +51,7 @@ const groups = [
     [
       ["Talk to an expert", "/contact?tab=expert"],
       ["Work with Credwisory", "/contact?tab=credwisory"],
+      ["Submit Your Resume", "/contact#submit-resume"],
     ],
   ],
   ["Refer and Earn", [["Refer and Earn", "/refer-a-friend"]]],

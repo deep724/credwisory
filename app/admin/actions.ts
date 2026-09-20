@@ -21,6 +21,7 @@ import {
   LeadNote,
   Lender,
   Role,
+  ReferralLead,
   StudentProfile,
 } from "@/lib/models";
 
@@ -87,6 +88,7 @@ export async function updateLeadStatus(formData: FormData) {
   revalidatePath("/admin");
   return { ok: true };
 }
+export async function updateReferralStatus(formData: FormData){const admin=await requireAdmin();const value=z.object({id,status:z.enum(["NEW","CONTACTED","IN_PROGRESS","CONVERTED","REJECTED"])}).safeParse(Object.fromEntries(formData));if(!value.success)return;await connectToDatabase();const item=await ReferralLead.findByIdAndUpdate(value.data.id,{$set:{status:value.data.status,statusChangedById:admin._id,statusChangedAt:new Date()}},{new:true});if(!item)return;await audit(admin.id,"referral.status_updated","ReferralLead",value.data.id);revalidatePath("/admin/referrals")}
 export async function deleteClosedLead(formData: FormData) {
   const admin = await requireAdmin();
   const value = z
@@ -226,21 +228,57 @@ const lenderInput = z.object({
   foreclosure: z.string().trim().max(120),
   processingFee: z.string().trim().max(120),
   description: z.string().trim().max(500).optional(),
+  collateral: z.string().trim().max(1500).optional(),
+  eligibility: z.string().trim().max(5000).optional(),
+  documents: z.string().trim().max(5000).optional(),
+  infoBenefits: z.string().trim().max(5000).optional(),
+  infoRepayment: z.string().trim().max(5000).optional(),
+  infoFaqs: z.string().trim().max(8000).optional(),
+  infoOtherCharges: z.string().trim().max(2000).optional(),
+  infoMarginMoney: z.string().trim().max(2000).optional(),
+  infoApprovalTime: z.string().trim().max(2000).optional(),
+  infoTaxBenefit: z.string().trim().max(2000).optional(),
+  infoDocumentsApplication: z.string().trim().max(5000).optional(),
+  infoDocumentsFirstDisbursement: z.string().trim().max(5000).optional(),
+  infoDocumentsLaterDisbursement: z.string().trim().max(5000).optional(),
+  infoDocumentsSalaried: z.string().trim().max(5000).optional(),
+  infoDocumentsSelfEmployed: z.string().trim().max(5000).optional(),
+  infoDocumentsCollateral: z.string().trim().max(5000).optional(),
+  infoSecuredFeatures: z.string().trim().max(5000).optional(),
+  infoUnsecuredFeatures: z.string().trim().max(5000).optional(),
+  infoSubsidies: z.string().trim().max(5000).optional(),
+  contentStatus: z.enum(["DRAFT", "UNDER_REVIEW", "VERIFIED", "PUBLISHED"]).default("DRAFT"),
+  contentVerifiedAt: z.string().trim().optional(),
+  contentSources: z.string().trim().max(8000).optional(),
+  sectionTitleOverview: z.string().trim().max(80).optional(),
+  sectionTitleLoanDetails: z.string().trim().max(80).optional(),
+  sectionTitleEligibility: z.string().trim().max(80).optional(),
+  sectionTitleCollateral: z.string().trim().max(80).optional(),
+  sectionTitleDocuments: z.string().trim().max(80).optional(),
+  sectionTitleRepayment: z.string().trim().max(80).optional(),
+  sectionTitleBenefits: z.string().trim().max(80).optional(),
+  sectionTitleHowToApply: z.string().trim().max(80).optional(),
+  sectionTitleFaqs: z.string().trim().max(80).optional(),
   collateralAvailable: z.enum(["true", "false"]),
   nonCollateralAvailable: z.enum(["true", "false"]),
   logoUrl: z.string().trim().max(1000).optional(),
   applicationUrl: z.string().trim().url().or(z.literal("")),
 });
 export async function saveLender(formData: FormData) {
-  const admin = await requireAdmin();
+  const admin = await requireRole("SUPER_ADMIN");
   const raw = Object.fromEntries(formData);
-  if (raw.intent === "save-draft") { raw.published = "false"; raw.slug ||= String(raw.name || "draft-lender").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "draft-lender"; raw.displayOrder ||= "0"; raw.securedLoan ||= "Not available"; raw.unsecuredLoan ||= "Not available"; raw.securedRate ||= "Not available"; raw.unsecuredRate ||= "Not available"; raw.moratorium ||= ""; raw.tenure ||= ""; raw.foreclosure ||= ""; raw.processingFee ||= ""; raw.collateralAvailable ||= "false"; raw.nonCollateralAvailable ||= "false"; raw.applicationUrl ||= ""; }
+  if (raw.intent === "save-draft") { raw.published = "false"; raw.contentStatus = "DRAFT"; raw.slug ||= String(raw.name || "draft-lender").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "draft-lender"; raw.displayOrder ||= "0"; raw.securedLoan ||= "Not available"; raw.unsecuredLoan ||= "Not available"; raw.securedRate ||= "Not available"; raw.unsecuredRate ||= "Not available"; raw.moratorium ||= ""; raw.tenure ||= ""; raw.foreclosure ||= ""; raw.processingFee ||= ""; raw.collateralAvailable ||= "false"; raw.nonCollateralAvailable ||= "false"; raw.applicationUrl ||= ""; }
   if (raw.intent === "publish") raw.published = "true";
   const value = lenderInput.safeParse(raw);
   if (!value.success)
     return { error: "Please complete the highlighted lender fields before publishing.", fields: Object.fromEntries(Object.entries(value.error.flatten().fieldErrors).map(([field, messages]) => [field, messages?.[0] || "Please correct this field."])) };
   if (!isValidLenderLogo(value.data.logoUrl || ""))
     return { error: "Please complete the highlighted lender fields before publishing.", fields: { logoUrl: lenderLogoMessage } };
+  let contentSources: { title: string; url: string }[] = [];
+  if (value.data.contentSources) {
+    try { contentSources = JSON.parse(value.data.contentSources); } catch { return { error: "Please correct the lender content sources.", fields: { contentSources: "Use a valid JSON list of source title and URL entries." } }; }
+    if (!Array.isArray(contentSources) || contentSources.some((source) => !source || typeof source.title !== "string" || typeof source.url !== "string" || !/^https:\/\//.test(source.url))) return { error: "Please correct the lender content sources.", fields: { contentSources: "Each source needs a title and an HTTPS URL." } };
+  }
   await connectToDatabase();
   const {
     id: lenderId,
@@ -253,6 +291,34 @@ export async function saveLender(formData: FormData) {
     tenure,
     foreclosure,
     processingFee,
+    infoBenefits,
+    infoRepayment,
+    infoFaqs,
+    infoOtherCharges,
+    infoMarginMoney,
+    infoApprovalTime,
+    infoTaxBenefit,
+    infoDocumentsApplication,
+    infoDocumentsFirstDisbursement,
+    infoDocumentsLaterDisbursement,
+    infoDocumentsSalaried,
+    infoDocumentsSelfEmployed,
+    infoDocumentsCollateral,
+    infoSecuredFeatures,
+    infoUnsecuredFeatures,
+    infoSubsidies,
+    contentSources: _contentSources,
+    contentVerifiedAt,
+    contentStatus,
+    sectionTitleOverview,
+    sectionTitleLoanDetails,
+    sectionTitleEligibility,
+    sectionTitleCollateral,
+    sectionTitleDocuments,
+    sectionTitleRepayment,
+    sectionTitleBenefits,
+    sectionTitleHowToApply,
+    sectionTitleFaqs,
     ...data
   } = value.data;
   const duplicate = await Lender.exists({ slug: data.slug, ...(lenderId ? { _id: { $ne: lenderId } } : {}) });
@@ -263,6 +329,38 @@ export async function saveLender(formData: FormData) {
     published: published === "true",
     logoUrl: data.logoUrl || undefined,
     applicationUrl: data.applicationUrl || undefined,
+    infoSections: {
+      benefits: infoBenefits || undefined,
+      repayment: infoRepayment || undefined,
+      faqs: infoFaqs || undefined,
+      otherCharges: infoOtherCharges || undefined,
+      marginMoney: infoMarginMoney || undefined,
+      approvalTime: infoApprovalTime || undefined,
+      taxBenefit: infoTaxBenefit || undefined,
+      documentsApplication: infoDocumentsApplication || undefined,
+      documentsFirstDisbursement: infoDocumentsFirstDisbursement || undefined,
+      documentsLaterDisbursement: infoDocumentsLaterDisbursement || undefined,
+      documentsSalaried: infoDocumentsSalaried || undefined,
+      documentsSelfEmployed: infoDocumentsSelfEmployed || undefined,
+      documentsCollateral: infoDocumentsCollateral || undefined,
+      securedFeatures: infoSecuredFeatures || undefined,
+      unsecuredFeatures: infoUnsecuredFeatures || undefined,
+      subsidies: infoSubsidies || undefined,
+    },
+    sectionTitles: {
+      overview: sectionTitleOverview || undefined,
+      "loan-details": sectionTitleLoanDetails || undefined,
+      eligibility: sectionTitleEligibility || undefined,
+      collateral: sectionTitleCollateral || undefined,
+      documents: sectionTitleDocuments || undefined,
+      repayment: sectionTitleRepayment || undefined,
+      benefits: sectionTitleBenefits || undefined,
+      "how-to-apply": sectionTitleHowToApply || undefined,
+      faqs: sectionTitleFaqs || undefined,
+    },
+    contentStatus,
+    contentVerifiedAt: contentVerifiedAt ? new Date(contentVerifiedAt) : undefined,
+    contentSources,
     comparison: {
       secured: securedLoan,
       unsecured: unsecuredLoan,
@@ -298,6 +396,7 @@ export async function saveLender(formData: FormData) {
   revalidatePath("/admin/lenders");
   revalidatePath("/");
   revalidatePath("/lenders");
+  revalidatePath("/apply");
   revalidatePath("/compare-all-lenders.html");
   return { ok: true, id: String(lender._id), lender };
 }
@@ -317,7 +416,7 @@ export async function deleteLender(formData: FormData) {
 }
 export async function createAdminUser(formData: FormData) {
   const admin = await requireRole("SUPER_ADMIN");
-  const value = adminUserInput.safeParse(Object.fromEntries(formData));
+  const value = adminUserInput.safeParse({ ...Object.fromEntries(formData), role: "STAFF" });
   if (!value.success) return { error: "Enter a name, valid email, password of at least 12 characters, and role." };
 
   try {
@@ -345,6 +444,19 @@ export async function createAdminUser(formData: FormData) {
     console.error("[admin-users] create failed", { reason: error instanceof Error ? error.name : "unknown" });
     return { error: "We couldn't create this admin user. Please try again." };
   }
+}
+export async function resetStaffAdminPassword(formData: FormData) {
+  const admin = await requireRole("SUPER_ADMIN");
+  const value = z.object({ id, password: z.string().min(12).max(128), confirmation: z.string() }).safeParse(Object.fromEntries(formData));
+  if (!value.success || value.data.password !== value.data.confirmation) return { error: "Use matching passwords of at least 12 characters." };
+  await connectToDatabase();
+  const target = await AdminUser.findById(value.data.id).populate("roleId", "key");
+  const role = target?.roleId as unknown as { key?: string } | null;
+  if (!target || role?.key !== "STAFF") return { error: "Only Staff Admin passwords can be reset." };
+  await AdminUser.updateOne({ _id: target._id }, { $set: { passwordHash: await bcrypt.hash(value.data.password, 12), mustChangePassword: true, failedLogins: 0, lockedUntil: null } });
+  await audit(admin.id, "admin_user.password_reset", "AdminUser", String(target._id));
+  revalidatePath("/admin/users");
+  return { ok: true };
 }
 export async function changeOwnPassword(formData: FormData) {
   const admin = await requireAdmin({ allowPasswordChange: true });
@@ -374,7 +486,8 @@ export async function updateAdminUser(formData: FormData) {
   const value = z
     .object({
       id,
-      role: z.enum(["SUPER_ADMIN", "STAFF"]),
+      name: z.string().trim().min(2).max(120),
+      email: z.string().trim().email().max(254).transform((value) => value.toLowerCase()),
       active: z.enum(["true", "false"]),
     })
     .safeParse(Object.fromEntries(formData));
@@ -383,31 +496,16 @@ export async function updateAdminUser(formData: FormData) {
   const target = await AdminUser.findById(value.data.id).populate("roleId");
   if (!target) return;
   const targetRole = target.roleId as unknown as { key?: string } | null;
-  const changingOwnPrivilege =
-    String(target._id) === admin.id &&
-    (value.data.active === "false" || value.data.role !== "SUPER_ADMIN");
-  if (changingOwnPrivilege) return;
-  const removesSuper =
-    targetRole?.key === "SUPER_ADMIN" &&
-    (value.data.active === "false" || value.data.role !== "SUPER_ADMIN");
-  if (removesSuper) {
-    const superRole = await Role.findOne({ key: "SUPER_ADMIN" });
-    const count = superRole
-      ? await AdminUser.countDocuments({ roleId: superRole._id, active: true })
-      : 0;
-    if (count <= 1) return;
-  }
-  const role = await Role.findOne({ key: value.data.role });
-  if (!role) return;
+  if (targetRole?.key !== "STAFF") return;
+  const duplicate = await AdminUser.exists({ _id: { $ne: target._id }, email: value.data.email });
+  if (duplicate) return;
   await AdminUser.updateOne(
     { _id: target._id },
-    { $set: { roleId: role._id, active: value.data.active === "true" } },
+    { $set: { name: value.data.name, email: value.data.email, active: value.data.active === "true" } },
   );
   await audit(
     admin.id,
-    value.data.active === "true"
-      ? "admin_user.updated"
-      : "admin_user.deactivated",
+    value.data.active === "true" ? "admin_user.updated" : "admin_user.deactivated",
     "AdminUser",
     String(target._id),
   );
@@ -530,7 +628,7 @@ export async function mergeStudentProfiles(formData: FormData) {
   revalidatePath(`/admin/students/${value.data.targetId}`);
 }
 export async function archiveLender(formData: FormData) {
-  const admin = await requireAdmin();
+  const admin = await requireRole("SUPER_ADMIN");
   const value = id.safeParse(formData.get("id"));
   if (!value.success) return;
   await connectToDatabase();
@@ -595,7 +693,7 @@ const blogInput = z.object({
   coverImageUrl: z.string().trim().max(1000).optional(),
   seoTitle: z.string().trim().max(180).optional(),
   seoDescription: z.string().trim().max(320).optional(),
-  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
+  status: z.enum(["DRAFT", "PUBLISHED", "SCHEDULED", "ARCHIVED"]),
   featured: z.enum(["true", "false"]).optional(),
   publishDate: z.string().max(40).optional(),
 });
@@ -607,6 +705,9 @@ const safeBlogContent = (content: string) =>
       "strong",
       "em",
       "u",
+      "s",
+      "strike",
+      "h1",
       "h2",
       "h3",
       "ul",
@@ -615,8 +716,11 @@ const safeBlogContent = (content: string) =>
       "blockquote",
       "a",
       "img",
+      "pre",
+      "code",
+      "hr",
     ],
-    allowedAttributes: { a: ["href", "target", "rel"], img: ["src", "alt"] },
+    allowedAttributes: { a: ["href", "target", "rel", "class", "data-blog-button", "aria-label"], img: ["src", "alt"], p: ["style"], h1: ["style"], h2: ["style"], h3: ["style"] },
     allowedSchemes: ["http", "https"],
     transformTags: {
       a: sanitizeHtml.simpleTransform("a", { rel: "noopener noreferrer" }),
@@ -649,7 +753,7 @@ export async function saveBlog(formData: FormData) {
   if (duplicate)
     return { error: "Please complete the highlighted fields before publishing.", fields: { slug: "That slug is already in use. Choose a unique URL." } };
   const publishedAt =
-    data.status === "PUBLISHED"
+    data.status === "PUBLISHED" || data.status === "SCHEDULED"
       ? publishDate
         ? new Date(publishDate)
         : new Date()

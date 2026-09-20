@@ -24,6 +24,14 @@ type Lender = Record<string, unknown> & {
   description?: string;
   collateralAvailable?: boolean;
   nonCollateralAvailable?: boolean;
+  collateral?: string;
+  eligibility?: string;
+  documents?: string;
+  infoSections?: Record<string, string>;
+  sectionTitles?: Record<string, string>;
+  contentStatus?: string;
+  contentVerifiedAt?: string;
+  contentSources?: { title: string; url: string }[];
 };
 type Errors = Record<string, string>;
 const fields = [
@@ -42,6 +50,32 @@ const requiredLoan = new Set([
   "securedRate",
   "unsecuredRate",
 ]);
+const sectionTitleFields = [
+  ["sectionTitleOverview", "Overview", "overview"],
+  ["sectionTitleLoanDetails", "Loan amount & interest", "loan-details"],
+  ["sectionTitleEligibility", "Eligibility criteria", "eligibility"],
+  ["sectionTitleCollateral", "Collateral & loan options", "collateral"],
+  ["sectionTitleDocuments", "Documents required", "documents"],
+  ["sectionTitleRepayment", "Repayment details", "repayment"],
+  ["sectionTitleBenefits", "Benefits & key features", "benefits"],
+  ["sectionTitleHowToApply", "Apply through Credwisory", "how-to-apply"],
+  ["sectionTitleFaqs", "Frequently asked questions", "faqs"],
+] as const;
+const lenderInfoFields = [
+  ["infoOtherCharges", "Other charges", "otherCharges", "Verified charges not already listed above"],
+  ["infoMarginMoney", "Margin money", "marginMoney", "Verified margin-money details"],
+  ["infoApprovalTime", "Processing / approval time", "approvalTime", "Verified processing or approval timing"],
+  ["infoTaxBenefit", "Tax benefit information", "taxBenefit", "Only verified applicable tax information"],
+  ["infoDocumentsApplication", "Documents at application stage", "documentsApplication", "One document per line"],
+  ["infoDocumentsFirstDisbursement", "Documents for first disbursement", "documentsFirstDisbursement", "One document per line"],
+  ["infoDocumentsLaterDisbursement", "Documents for later disbursements", "documentsLaterDisbursement", "One document per line"],
+  ["infoDocumentsSalaried", "Documents for salaried co-applicants", "documentsSalaried", "One document per line"],
+  ["infoDocumentsSelfEmployed", "Documents for self-employed co-applicants", "documentsSelfEmployed", "One document per line"],
+  ["infoDocumentsCollateral", "Collateral / property documents", "documentsCollateral", "One document per line"],
+  ["infoSecuredFeatures", "Secured loan features", "securedFeatures", "Only for lenders with secured loans"],
+  ["infoUnsecuredFeatures", "Unsecured loan features", "unsecuredFeatures", "Only for lenders with unsecured loans"],
+  ["infoSubsidies", "Subsidies or government schemes", "subsidies", "Only currently verified applicable schemes"],
+] as const;
 const slugify = (value: string) =>
   value
     .toLowerCase()
@@ -555,6 +589,107 @@ function Editor({
               <option value="true">Available</option>
               <option value="false">Not available</option>
             </select>
+          </label>
+        </fieldset>
+        <fieldset>
+          <legend>Public lender information</legend>
+          <p className="cw-admin-field-help cw-admin-field-wide">
+            This content appears above the lender application form. Add only
+            lender information that has been verified for publication. Use one
+            item per line for lists; use a blank line to separate paragraphs.
+          </p>
+          <details className="cw-admin-field-wide">
+            <summary>Customize section labels</summary>
+            <div className="cw-admin-form-grid">
+              {sectionTitleFields.map(([field, label, key]) => (
+                <label key={field}>
+                  {label}
+                  <input name={field} maxLength={80} defaultValue={lender?.sectionTitles?.[key] || ""} placeholder={label} />
+                </label>
+              ))}
+            </div>
+          </details>
+          <label className="cw-admin-field-wide">
+            Collateral and loan options
+            <textarea
+              name="collateral"
+              rows={4}
+              maxLength={1500}
+              defaultValue={lender?.collateral || ""}
+              placeholder="Verified details about secured and unsecured options"
+            />
+          </label>
+          <label className="cw-admin-field-wide">
+            Eligibility criteria
+            <textarea
+              name="eligibility"
+              rows={5}
+              maxLength={5000}
+              defaultValue={lender?.eligibility || ""}
+              placeholder="Add verified eligibility criteria, one item per line"
+            />
+          </label>
+          <label className="cw-admin-field-wide">
+            Documents required
+            <textarea
+              name="documents"
+              rows={5}
+              maxLength={5000}
+              defaultValue={lender?.documents || ""}
+              placeholder="Add verified document requirements, one item per line"
+            />
+          </label>
+          <label className="cw-admin-field-wide">
+            Benefits and key features
+            <textarea
+              name="infoBenefits"
+              rows={5}
+              maxLength={5000}
+              defaultValue={lender?.infoSections?.benefits || ""}
+              placeholder="Add verified benefits or key features, one item per line"
+            />
+          </label>
+          <label className="cw-admin-field-wide">
+            Repayment details
+            <textarea
+              name="infoRepayment"
+              rows={4}
+              maxLength={5000}
+              defaultValue={lender?.infoSections?.repayment || ""}
+              placeholder="Add verified repayment details, one item per line"
+            />
+          </label>
+          <label className="cw-admin-field-wide">
+            Frequently asked questions
+            <textarea
+              name="infoFaqs"
+              rows={7}
+              maxLength={8000}
+              defaultValue={lender?.infoSections?.faqs || ""}
+              placeholder="Question? Answer\nQuestion? Answer"
+            />
+          </label>
+          {lenderInfoFields.map(([field, label, key, placeholder]) => (
+            <label className="cw-admin-field-wide" key={field}>
+              {label}
+              <textarea name={field} rows={4} maxLength={5000} defaultValue={lender?.infoSections?.[key] || ""} placeholder={placeholder} />
+            </label>
+          ))}
+          <label>
+            Content status
+            <select name="contentStatus" defaultValue={lender?.contentStatus || "DRAFT"}>
+              <option value="DRAFT">Draft</option><option value="UNDER_REVIEW">Under Review</option><option value="VERIFIED">Verified</option><option value="PUBLISHED">Published</option>
+            </select>
+            <small>Only Published content is visible on the public lender page.</small>
+          </label>
+          <label>
+            Last verified on
+            <input name="contentVerifiedAt" type="date" defaultValue={lender?.contentVerifiedAt?.slice(0, 10) || ""} />
+          </label>
+          <label className="cw-admin-field-wide">
+            Sources (JSON)
+            <textarea name="contentSources" rows={5} defaultValue={lender?.contentSources?.length ? JSON.stringify(lender.contentSources, null, 2) : ""} placeholder={'[{"title":"Official lender source","url":"https://..."}]'} />
+            <small>Add official source titles and HTTPS URLs. Sources are displayed on the public card.</small>
           </label>
         </fieldset>
         <fieldset className="cw-lender-visibility">

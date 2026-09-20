@@ -14,6 +14,12 @@ import "./student-profile-polish.css";
 import "./leads-crm-polish.css";
 import "./lead-status-control-polish.css";
 import "./lead-detail-polish.css";
+import "./admin-danger-polish.css";
+import "./blog-editor-premium.css";
+import "./blog-editor-image-manager.css";
+import "./blog-editor-buttons.css";
+import "./blog-editor-content-polish.css";
+import "./submission-leads.css";
 import { AdminActionTooltips } from "@/components/admin-action-tooltips";
 export default function AdminLayout({
   children,

@@ -293,3 +293,5 @@
     width: 100%;
   }
 }
+/* Approved rich-text call-to-action links. */
+.cw-blog-button{display:table;max-width:100%;border:1px solid transparent;border-radius:8px;padding:.72rem 1.1rem;color:#fff!important;font-weight:750;line-height:1.25;text-decoration:none!important;transition:transform .16s ease,box-shadow .16s ease,background .16s ease}.cw-blog-button:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(8,125,122,.2)}.cw-blog-button:focus-visible{outline:3px solid #78c9c3;outline-offset:3px}.cw-blog-button--primary{background:#087d7a}.cw-blog-button--secondary{background:#17394b}.cw-blog-button--outline{border-color:#087d7a;background:#fff;color:#087d7a!important}.cw-blog-button-align--center{margin-left:auto;margin-right:auto}.cw-blog-button-align--right{margin-left:auto}

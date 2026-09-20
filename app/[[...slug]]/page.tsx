@@ -103,6 +103,10 @@ export default async function Page({ params }: Props) {
     scripts.push('<script src="/scholarship-cleanup.js"></script>');
   if (filename === "compare-all-lenders.html")
     scripts.push('<script src="/lender-tabs.js"></script>');
+  if (filename === "contact.html")
+    scripts.push('<script src="/contact-enhancements.js"></script>');
+  if (filename === "refer-a-friend.html")
+    scripts.push('<script src="/referral-form.js"></script>');
   if (
     [
       "compare-all-lenders.html",

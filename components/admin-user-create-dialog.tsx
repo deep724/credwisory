@@ -23,7 +23,6 @@ export function AdminUserCreateDialog() {
         <label>Full name<input name="name" required autoComplete="name" /></label>
         <label>Email address<input name="email" type="email" required autoComplete="email" /></label>
         <label>Temporary password<input name="password" type="password" minLength={12} autoComplete="new-password" required aria-describedby="admin-password-help" /><small id="admin-password-help">At least 12 characters. The user must change it after first sign-in.</small></label>
-        <label>Role<select name="role" defaultValue="STAFF"><option value="STAFF">Staff Admin</option><option value="SUPER_ADMIN">Super Admin</option></select></label>
         {error ? <p className="cw-admin-error" role="alert">{error}</p> : null}
         <div className="cw-admin-dialog-actions"><button type="button" className="cw-admin-reset" disabled={pending} onClick={() => dialogRef.current?.close()}>Cancel</button><button className="cw-admin-primary" disabled={pending}>{pending ? "Creating…" : "Create admin user"}</button></div>
       </form>
