@@ -21,7 +21,6 @@ import "./blog-editor-buttons.css";
 import "./blog-editor-content-polish.css";
 import "./submission-leads.css";
 import "./referrals-polish.css";
-import "./settings-polish.css";
 import { AdminActionTooltips } from "@/components/admin-action-tooltips";
 export default function AdminLayout({
   children,

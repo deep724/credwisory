@@ -335,15 +335,6 @@ const auditLogSchema = new Schema(
 );
 auditLogSchema.index({ entityType: 1, entityId: 1 });
 
-// Small, allow-listed site settings. Values must always be validated by the
-// feature that owns the key before they are persisted or rendered.
-const siteSettingSchema = new Schema(
-  {
-    key: { type: String, required: true, unique: true, trim: true, maxlength: 100 },
-    value: { type: String, trim: true, maxlength: 10_000, default: "" },
-  },
-  schemaOptions,
-);
 const testimonialSchema = new Schema(
   {
     displayName: { type: String, required: true, trim: true, maxlength: 120 },
@@ -354,8 +345,9 @@ const testimonialSchema = new Schema(
     text: { type: String, required: true, trim: true, maxlength: 3_000 },
     photoUrl: { type: String, trim: true, maxlength: 1_000 },
     videoUrl: { type: String, trim: true, maxlength: 1_000 },
+    contact: { type: String, trim: true, maxlength: 254, select: false },
     consentConfirmed: { type: Boolean, required: true, default: false },
-    status: { type: String, enum: ["DRAFT", "PUBLISHED"], default: "DRAFT" },
+    status: { type: String, enum: ["DRAFT", "PENDING_REVIEW", "PUBLISHED", "REJECTED"], default: "DRAFT" },
   },
   schemaOptions,
 );
@@ -409,5 +401,4 @@ export const Application = registeredModel("Application", applicationSchema);
 export const Lender = registeredModel("Lender", lenderSchema);
 export const BlogPost = registeredModel("BlogPost", blogPostSchema);
 export const AuditLog = registeredModel("AuditLog", auditLogSchema);
-export const SiteSetting = registeredModel("SiteSetting", siteSettingSchema);
 export const Testimonial = registeredModel("Testimonial", testimonialSchema);

@@ -117,7 +117,7 @@ export function LenderApplicationForm({ lender }: { lender: AvailableLender }) {
       <section className="cw-apply-lender-summary" aria-labelledby="lender-summary-title">
         <header className="cw-apply-lender-summary__head">
           <div className="cw-apply-lender-summary__identity">
-            <LenderLogo name={lender.name} slug={lender.slug} logoUrl={lender.logoUrl} size="header" />
+            <LenderLogo name={lender.name} slug={lender.slug} lenderType={lender.lenderType} logoUrl={lender.logoUrl} size="header" />
             <div><p className="cw-apply-eyebrow">LENDER DETAILS</p><h2 id="lender-summary-title">{lender.name}</h2><span className="cw-apply-lender-summary__type">{lenderType}</span></div>
           </div>
           <span className="cw-apply-lender-summary__status">Applying with {lender.name}</span>

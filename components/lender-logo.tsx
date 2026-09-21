@@ -1,12 +1,15 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element -- local artwork and admin upload previews keep their intrinsic aspect ratio. */
-import { useState, type SyntheticEvent } from "react";
-import { lenderLogoSources } from "@/lib/lender-logo-assets";
+/* eslint-disable @next/next/no-img-element -- verified local SVG marks retain their natural proportions. */
+import { useState } from "react";
+import type { SyntheticEvent } from "react";
+import { lenderLogoSources, lenderTextTileLabel } from "@/lib/lender-logo-assets";
 
 type Props = {
   name: string;
   slug?: string;
+  lenderType?: string;
+  /** Existing data is accepted for compatibility, but never used as image artwork. */
   logoUrl?: string;
   size?: "table" | "card" | "header";
   preview?: boolean;
@@ -15,17 +18,18 @@ type Props = {
 };
 
 export function LenderLogo({ size = "table", ...props }: Props) {
-  const sources = lenderLogoSources(props.slug || "", props.name, props.logoUrl, props.preview);
-  return <LogoImage key={sources.join("|")} {...props} size={size} sources={sources} />;
+  const sources = lenderLogoSources(props.slug || "", props.name, props.lenderType);
+  const label = lenderTextTileLabel(props.slug || "", props.name);
+  return <LogoImage key={`${sources.join("|")}:${label}`} {...props} size={size} sources={sources} label={label} />;
 }
 
-function LogoImage({ name, size, sources, onLoad, onError }: Props & { sources: string[] }) {
-  const [index, setIndex] = useState(0);
-  const [loaded, setLoaded] = useState(false);
-  const source = sources[index];
-  const initials = name.trim().split(/\s+/).filter(Boolean).map((word) => word[0]).slice(0, 3).join("").toUpperCase() || "?";
-  return <span className={`cw-lender-logo cw-lender-logo--${size}`} role="img" aria-label={`${name || "Lender"} logo${source ? "" : " unavailable"}`}>
-    {!source || !loaded ? <span className="cw-lender-logo__fallback" aria-hidden="true">{initials}</span> : null}
-    {source ? <img className={`cw-lender-logo__image${loaded ? " is-loaded" : ""}`} src={source} alt="" decoding="async" onLoad={(event) => { setLoaded(true); onLoad?.(event); }} onError={() => { setLoaded(false); setIndex((value) => value + 1); onError?.(); }} /> : null}
+function LogoImage({ name, size, sources, label, onLoad, onError }: Props & { sources: string[]; label: string }) {
+  const [failed, setFailed] = useState(false);
+  const source = failed ? undefined : sources[0];
+  const accessibleLabel = `${name || "Lender"} logo`;
+  return <span className={`cw-lender-logo cw-lender-logo--${size} cw-lender-logo--${source ? "symbol" : "text"}`} title={name}
+    role={source ? undefined : "img"} aria-label={source ? undefined : accessibleLabel}>
+    {source ? <img className="cw-lender-logo__image" src={source} alt={accessibleLabel} width={40} height={40} decoding="async" onLoad={onLoad} onError={() => { setFailed(true); onError?.(); }} />
+      : <span className="cw-lender-logo__fallback" aria-hidden="true">{label === "Poonawalla" ? <>Poona<wbr />walla</> : label}</span>}
   </span>;
 }

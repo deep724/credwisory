@@ -14,8 +14,7 @@ type NavIconName =
   | "lenders"
   | "blogs"
   | "users"
-  | "audit"
-  | "settings";
+  | "audit";
 
 const links: ReadonlyArray<{
   label: string;
@@ -31,7 +30,6 @@ const links: ReadonlyArray<{
   { label: "Lenders", href: "/admin/lenders", icon: "lenders" },
   { label: "Blogs", href: "/admin/blogs", icon: "blogs" },
   { label: "Users", href: "/admin/users", icon: "users", superAdmin: true },
-  { label: "Settings", href: "/admin/settings", icon: "settings", superAdmin: true },
   { label: "Testimonials", href: "/admin/testimonials", icon: "blogs", superAdmin: true },
   { label: "Audit trail", href: "/admin/audit", icon: "audit" },
   { label: "My Account", href: "/admin/change-password", icon: "users" },
@@ -82,12 +80,6 @@ function NavIcon({ name }: { name: NavIconName }) {
       <>
         <circle cx="12" cy="12" r="8" />
         <path d="M12 7v5l3 2" />
-      </>
-    ),
-    settings: (
-      <>
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.2 2.2-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-3.1v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-2.2-2.2.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H5v-3.1h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1 2.2-2.2.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5V3.5h3.1v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 2.2 2.2-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V13h-.2a1.7 1.7 0 0 0-1.5 1Z" />
       </>
     ),
   };

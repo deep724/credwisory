@@ -12,7 +12,7 @@ Use `npm run lint`, `npm run typecheck`, and `npm run build` before deployment.
 
 ## Backend
 
-`POST /api/leads` accepts validated eligibility, lender enquiry, contact, and referral submissions. It applies a small in-memory IP rate limit and honeypot field before storing a `Lead` in MongoDB. `GET /api/lenders` reads published lenders. `GET /api/health` is a protected heartbeat: send `Authorization: Bearer $CRON_SECRET`; it runs a MongoDB `ping` and returns only a safe availability result. For multi-instance production deployments, replace the in-memory limiter with a shared Redis/KV limiter.
+`POST /api/leads` accepts validated eligibility, lender enquiry, contact, and referral submissions. It applies a small in-memory IP rate limit and honeypot field before storing a `Lead` in MongoDB. `GET /api/lenders` reads published lenders. `GET /api/internal/database-heartbeat` is a protected, server-only MongoDB heartbeat. For multi-instance production deployments, replace the in-memory limiter with a shared Redis/KV limiter.
 
 ## Admin panel
 
@@ -26,7 +26,16 @@ New leads are linked to a `studentprofiles` record only by normalized email and/
 
 ### Daily database heartbeat
 
-`vercel.json` schedules `/api/health` every day at 03:00 UTC. In Vercel, add `MONGODB_URI`, `ADMIN_JWT_SECRET`, and `CRON_SECRET` to the **Production** environment, then deploy; Vercel Cron will send the configured request to the protected endpoint. `ADMIN_JWT_SECRET` must be a stable, high-entropy secret shared by every production deployment; changing it intentionally invalidates all existing admin sessions. Do not add `NEXTAUTH_SECRET`: this application does not use NextAuth. If your scheduler does not support the authorization header, configure an equivalent scheduled job that does. A heartbeat cannot override a database provider's enforced free-tier auto-pause policy; it only keeps an application connection active where the provider supports that behavior.
+`vercel.json` schedules `/api/internal/database-heartbeat` every day at 03:00 UTC. In Vercel, add `MONGODB_URI`, `ADMIN_JWT_SECRET`, and `CRON_SECRET` to the **Production** environment, then deploy; Vercel Cron automatically sends `Authorization: Bearer <CRON_SECRET>` to the configured endpoint. `ADMIN_JWT_SECRET` must be a stable, high-entropy secret shared by every production deployment; changing it intentionally invalidates all existing admin sessions. Do not add `NEXTAUTH_SECRET`: this application does not use NextAuth. A heartbeat cannot override a database provider's enforced free-tier auto-pause policy; it only keeps an application connection active where the provider supports that behavior.
+
+To configure the daily heartbeat after deployment:
+
+1. Generate a separate random `CRON_SECRET` (at least 16 characters) and add it to the Vercel project's **Production** environment variables. Do not expose it with a `NEXT_PUBLIC_` prefix.
+2. Deploy the project. Vercel registers the `/api/internal/database-heartbeat` cron from `vercel.json`; it runs once daily at 03:00 UTC, independently of website visits and preview deployments.
+3. To verify the deployed route manually, send a server-side request to `https://YOUR_DOMAIN/api/internal/database-heartbeat` with `Authorization: Bearer YOUR_CRON_SECRET`. A successful response is `{"success":true,"timestamp":"…","database":"connected"}`. Never put the secret in browser code or a public URL.
+4. Review failed invocations in Vercel's Cron Jobs and function logs. The route logs only safe success/failure messages and does not retry aggressively.
+
+For a non-Vercel host with no native scheduler, configure an external scheduler to make the same authenticated `GET` request once per day. It must send the `Authorization` header from a secret store; do not use a query token, browser timer, or an in-process `setInterval()`.
 
 ## Production security and HTTPS
 
@@ -42,7 +51,7 @@ Set these in the Vercel project that owns the deployed domain, with the **Produc
 | --- | --- | --- |
 | `MONGODB_URI` | Yes | Atlas URI for the intended `crd` database; it must contain the production admin account. |
 | `ADMIN_JWT_SECRET` | Yes | A newly generated random secret of at least 32 bytes (for example, `openssl rand -base64 48`). Keep its value stable after deployment. |
-| `CRON_SECRET` | Yes when `/api/health` cron is enabled | Separate random bearer secret for the health cron. |
+| `CRON_SECRET` | Yes when the daily database heartbeat is enabled | Separate random bearer secret for `/api/internal/database-heartbeat`. |
 | `ADMIN_COOKIE_SECURE` | No | Leave unset on Vercel; production cookies are always Secure. |
 | `MONGODB_IP_FAMILY` | No | This app currently does not consume it. |
 | `ADMIN_SEED_EMAIL`, `ADMIN_SEED_PASSWORD` | Only to run the seed script | Seed-time values, not required by sign-in at runtime. Never use a default password in production. |

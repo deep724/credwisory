@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
       "emi-calculator", "loan-takeover-calculator", "interest-rate-comparison",
     ];
     return [
+      { source: "/admin/settings", destination: "/admin", permanent: false },
       { source: "/index.html", destination: "/", permanent: true },
       ...publicPages.map((page) => ({ source: `/${page}.html`, destination: `/${page}`, permanent: true })),
     ];

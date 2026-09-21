@@ -136,7 +136,7 @@ export function LenderManager({ lenders }: { lenders: Lender[] }) {
                   <tr key={lender._id}>
                     <td>
                       <div className="cw-admin-lender-cell">
-                        <LenderLogo name={lender.name} slug={lender.slug} logoUrl={lender.logoUrl} />
+                        <LenderLogo name={lender.name} slug={lender.slug} lenderType={lender.lenderType} logoUrl={lender.logoUrl} />
                         <div>
                           <strong>{lender.name}</strong>
                           {lender.archivedAt ? (
@@ -492,7 +492,7 @@ function Editor({
         <fieldset>
           <legend>Branding and links</legend>
           <label className="cw-admin-field-wide">
-            Logo URL <span className="cw-admin-optional">(optional)</span>
+            Legacy logo URL <span className="cw-admin-optional">(stored but not displayed)</span>
             <input
               name="logoUrl"
               type="text"
@@ -503,15 +503,15 @@ function Editor({
                 setLogoError("");
                 clear("logoUrl");
               }}
-              placeholder="https://example.com/logo.png"
+              placeholder="Existing records are retained; lender tiles use approved marks or text"
             />
             {errorFor("logoUrl")}
           </label>
           <div className="cw-logo-upload-wrap">
-            <span className="cw-admin-field-label">Lender logo</span>
+            <span className="cw-admin-field-label">Legacy lender logo</span>
             <input ref={logoInput} className="cw-logo-upload-input" type="file" accept={LENDER_LOGO_ACCEPT} onChange={(event) => void uploadLogo(event.target.files?.[0])} />
             <div className={`cw-logo-dropzone ${draggingLogo ? "is-dragging" : ""}`} role="button" tabIndex={0} aria-label="Upload lender logo" onClick={() => logoInput.current?.click()} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); logoInput.current?.click(); } }} onDragOver={(event) => { event.preventDefault(); setDraggingLogo(true); }} onDragLeave={() => setDraggingLogo(false)} onDrop={(event) => { event.preventDefault(); setDraggingLogo(false); void uploadLogo(event.dataTransfer.files?.[0]); }}>
-              <UploadIcon /><span><b>Upload lender logo</b><small>Drag and drop, or click to browse</small></span>
+              <UploadIcon /><span><b>Store lender logo</b><small>Retained for the lender record; it is not displayed publicly</small></span>
             </div>
             <small>JPG, PNG, or WebP up to {LENDER_LOGO_MAX_LABEL}.</small>
           </div>
@@ -524,10 +524,11 @@ function Editor({
               placeholder="Optional HTTPS application link"
             />
           </label>
-          {logoUrl ? (
-            <div className="cw-admin-image-preview cw-admin-field-wide">
+          <div className="cw-admin-image-preview cw-admin-field-wide">
               <LenderLogo
-                name={lender?.name || "Lender logo preview"}
+                name={lender?.name || "Lender"}
+                slug={slug}
+                lenderType={lender?.lenderType}
                 logoUrl={logoUrl}
                 size="header"
                 preview
@@ -545,11 +546,10 @@ function Editor({
                 }
               />
               <div>
-                <b>{logoInfo || "Uploaded logo"}</b>
-                <div className="cw-logo-preview-actions"><button type="button" className="cw-admin-reset" onClick={() => logoInput.current?.click()}>Replace</button><button type="button" className="cw-admin-reset cw-logo-remove" onClick={() => { setLogoUrl(""); setLogoInfo(""); setLogoError(""); clear("logoUrl"); }}>Remove</button></div>
+                <b>{logoInfo || "Website logo preview"}</b>
+                <div className="cw-logo-preview-actions">{logoUrl ? <button type="button" className="cw-admin-reset cw-logo-remove" onClick={() => { setLogoUrl(""); setLogoInfo(""); setLogoError(""); clear("logoUrl"); }}>Clear stored legacy logo</button> : null}</div>
               </div>
-            </div>
-          ) : null}
+          </div>
         </fieldset>
         <fieldset>
           <legend>Loan information</legend>

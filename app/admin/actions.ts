@@ -7,7 +7,6 @@ import { z } from "zod";
 import { requireAdmin, requireRole } from "@/lib/admin-auth";
 import { isValidBlogImageValue, validBlogImageMessage } from "@/lib/blog-images";
 import { isValidLenderLogo, lenderLogoMessage } from "@/lib/lender-images";
-import { safeGoogleReviewLink } from "@/lib/google-review-embed";
 import { adminUserInput, persistAdminUser } from "@/lib/admin-user-service";
 import { connectToDatabase } from "@/lib/mongodb";
 import {
@@ -23,7 +22,6 @@ import {
   Lender,
   Role,
   ReferralLead,
-  SiteSetting,
   StudentProfile,
   Testimonial,
 } from "@/lib/models";
@@ -56,44 +54,10 @@ async function audit(
   await AuditLog.create({ actorId, action, entityType, entityId });
 }
 async function requireCrmAccess() { return requireAdmin(); }
-export async function saveGoogleReviewLink(rawLink: string) {
-  const admin = await requireRole("SUPER_ADMIN");
-  const link = typeof rawLink === "string" ? safeGoogleReviewLink(rawLink) : null;
-  if (!link) return { error: "Enter a valid HTTPS Google Business Profile review link." };
-  await connectToDatabase();
-  await SiteSetting.findOneAndUpdate(
-    { key: "googleReviewLink" },
-    { $set: { value: link } },
-    { upsert: true, new: true, runValidators: true },
-  );
-  await audit(
-    admin.id,
-    "settings.google_review_link.updated",
-    "SiteSetting",
-    "googleReviewLink",
-  );
-  revalidatePath("/student-reviews-testimonials");
-  revalidatePath("/admin/settings");
-  return { ok: true, link };
-}
-export async function saveGoogleReviewSettings(profileUrl: string, reviewUrl: string) {
-  const admin = await requireRole("SUPER_ADMIN");
-  const profile = typeof profileUrl === "string" ? safeGoogleReviewLink(profileUrl) : null;
-  const review = typeof reviewUrl === "string" ? safeGoogleReviewLink(reviewUrl) : null;
-  if (!profile || !review) return { error: "Enter valid HTTPS Google Business Profile and review links." };
-  await connectToDatabase();
-  await Promise.all([
-    SiteSetting.findOneAndUpdate({ key: "googleBusinessProfileUrl" }, { $set: { value: profile } }, { upsert: true, runValidators: true }),
-    SiteSetting.findOneAndUpdate({ key: "googleReviewLink" }, { $set: { value: review } }, { upsert: true, runValidators: true }),
-  ]);
-  await audit(admin.id, "settings.google_review_urls.updated", "SiteSetting", "googleBusinessProfileUrl");
-  revalidatePath("/student-reviews-testimonials"); revalidatePath("/admin/settings");
-  return { ok: true, profile, review };
-}
 const testimonialInput = z.object({
   id: z.union([id, z.literal("")]).optional(),
   displayName: z.string().trim().min(2).max(120), university: z.string().trim().max(180).optional(), studyCountry: z.string().trim().max(100).optional(), course: z.string().trim().max(180).optional(),
-  rating: z.coerce.number().int().min(1).max(5), text: z.string().trim().min(12).max(3000), photoUrl: z.string().trim().max(1000).optional(), videoUrl: z.string().trim().max(1000).optional(), consentConfirmed: z.enum(["true", "false"]), status: z.enum(["DRAFT", "PUBLISHED"]),
+  rating: z.coerce.number().int().min(1).max(5), text: z.string().trim().min(12).max(3000), photoUrl: z.string().trim().max(1000).optional(), videoUrl: z.string().trim().max(1000).optional(), consentConfirmed: z.enum(["true", "false"]), status: z.enum(["DRAFT", "PENDING_REVIEW", "PUBLISHED", "REJECTED"]),
 });
 function safeOptionalUrl(value?: string) { if (!value) return ""; try { const url = new URL(value); return url.protocol === "https:" ? url.toString() : null; } catch { return null; } }
 export async function saveTestimonial(formData: FormData) {
@@ -106,13 +70,25 @@ export async function saveTestimonial(formData: FormData) {
   const document = { ...data, photoUrl: photoUrl || undefined, videoUrl: videoUrl || undefined, consentConfirmed: consentConfirmed === "true" };
   const record = testimonialId ? await Testimonial.findByIdAndUpdate(testimonialId, { $set: document }, { new: true, runValidators: true }) : await Testimonial.create(document);
   if (!record) return { error: "This testimonial is no longer available." };
-  await audit(admin.id, testimonialId ? "testimonial.updated" : "testimonial.created", "Testimonial", String(record._id));
+  await audit(admin.id, testimonialId ? `testimonial.${parsed.data.status.toLowerCase()}` : "testimonial.created", "Testimonial", String(record._id));
   revalidatePath("/admin/testimonials"); revalidatePath("/student-reviews-testimonials"); return { ok: true, id: String(record._id) };
 }
 export async function deleteTestimonial(formData: FormData) {
   const admin = await requireRole("SUPER_ADMIN"); const parsed = z.object({ id, confirm: z.literal("DELETE") }).safeParse(Object.fromEntries(formData)); if (!parsed.success) return { error: "Confirm deletion before continuing." };
   await connectToDatabase(); const record = await Testimonial.findByIdAndDelete(parsed.data.id).select("_id").lean(); if (!record) return { error: "This testimonial is no longer available." };
   await audit(admin.id, "testimonial.deleted", "Testimonial", parsed.data.id); revalidatePath("/admin/testimonials"); revalidatePath("/student-reviews-testimonials"); return { ok: true };
+}
+export async function setTestimonialPublication(idValue: string, published: boolean) {
+  const admin = await requireRole("SUPER_ADMIN");
+  if (!id.safeParse(idValue).success) return { error: "This testimonial is unavailable." };
+  await connectToDatabase();
+  const record = await Testimonial.findById(idValue).select("consentConfirmed").lean() as { consentConfirmed?: boolean } | null;
+  if (!record) return { error: "This testimonial is no longer available." };
+  if (published && !record.consentConfirmed) return { error: "Confirm student consent before publishing a testimonial." };
+  await Testimonial.findByIdAndUpdate(idValue, { $set: { status: published ? "PUBLISHED" : "DRAFT" } }, { runValidators: true });
+  await audit(admin.id, published ? "testimonial.published" : "testimonial.draft", "Testimonial", idValue);
+  revalidatePath("/admin/testimonials"); revalidatePath("/student-reviews-testimonials");
+  return { ok: true };
 }
 const assignmentInput=z.object({leadId:id,lenderId:id,notes:z.string().max(4000).optional()});
 export async function assignLeadLender(formData:FormData){const admin=await requireCrmAccess();const value=assignmentInput.safeParse(Object.fromEntries(formData));if(!value.success)return{error:"Invalid lender assignment."};await connectToDatabase();const exists=await LeadLenderAssignment.exists({leadId:value.data.leadId,lenderId:value.data.lenderId,archivedAt:null});if(exists)return{error:"This lender is already assigned."};const assignment=await LeadLenderAssignment.create({...value.data,assignedById:admin.id});await Lead.updateOne({_id:value.data.leadId,status:"NEW"},{$set:{status:"IN_PROGRESS",lenderId:value.data.lenderId}});await LeadActivity.create({leadId:value.data.leadId,actorId:admin.id,action:"Lender assigned",metadata:{assignmentId:String(assignment._id),lenderId:value.data.lenderId}});await audit(admin.id,"lead_lender.assigned","LeadLenderAssignment",String(assignment._id));revalidatePath(`/admin/leads/${value.data.leadId}`);return{ok:true,id:String(assignment._id)}}

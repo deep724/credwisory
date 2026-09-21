@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { LegacyRuntime } from "@/components/legacy-runtime";
 import { SiteFooter } from "@/components/site-footer";
 import { HomepageTestimonials } from "@/components/homepage-testimonials";
+import { TestimonialSubmission } from "@/components/testimonial-submission";
 import { loadLegacyPage, pathnameToLegacyFile } from "@/lib/legacy";
 
 type Props = { params: Promise<{ slug?: string[] }> };
@@ -127,6 +128,7 @@ export default async function Page({ params }: Props) {
       ))}
       <LegacyRuntime body={page.body} scripts={scripts} />
       {filename === "index.html" ? <HomepageTestimonials /> : null}
+      {filename === "index.html" ? <TestimonialSubmission /> : null}
       <SiteFooter />
     </>
   );

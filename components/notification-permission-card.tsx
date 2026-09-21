@@ -29,14 +29,17 @@ function isGuidanceLandingPage(pathname: string) {
   if (pathname.startsWith("/admin") || pathname.startsWith("/contact") || pathname.startsWith("/apply") || pathname === "/eligibility") return false;
   return true;
 }
+export function isGuidanceHref(href: string) {
+  return /(?:^|\/)eligibility(?:[/?#.]|$)/i.test(href);
+}
 function isGuidanceTrigger(element: HTMLElement) {
   if (element.closest("[data-guidance-trigger]")) return true;
   const link = element.closest<HTMLAnchorElement>("a[href]");
   if (link) {
     const href = link.getAttribute("href") || "";
-    return /(?:^|\/)(?:eligibility|talk-to-an-expert)(?:[/?#.]|$)/i.test(href) || /\/contact#talk-to-expert/i.test(href);
+    return isGuidanceHref(href);
   }
-  return element instanceof HTMLButtonElement && !element.form && /^(?:talk to an expert|talk to expert|check eligibility)$/i.test(element.textContent?.trim() || "");
+  return element instanceof HTMLButtonElement && !element.form && /^check eligibility$/i.test(element.textContent?.trim() || "");
 }
 
 export function NotificationPermissionCard() {
